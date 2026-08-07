@@ -22,7 +22,7 @@ pub suberror JsonError {
 pub fn JsonError::new(
   code : Int,
   message : String,
-  data? : Json = {},
+  data? : Json = Json::empty_object(),
 ) -> JsonError {
   JsonError(code~, message~, data~)
 }

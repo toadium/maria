@@ -342,7 +342,7 @@ async test "agent/tool_error_handling" (t : @test.Test) {
 ///|
 let empty_schema : @tool.JsonSchema = @tool.JsonSchema::from_json({
   "type": "object",
-  "properties": {},
+  "properties": Json::empty_object(),
   "required": [],
 })
 

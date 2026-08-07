@@ -36,14 +36,14 @@ async fn execute(prompt~ : String, model? : String) -> Unit {
         PreConversation => {
           let response : Json = {
             "method": "maria.agent.conversation_start",
-            "params": {},
+            "params": Json::empty_object(),
           }
           @stdio.stdout.writeln(response.stringify())
         }
         PostConversation => {
           let response : Json = {
             "method": "maria.agent.conversation_end",
-            "params": {},
+            "params": Json::empty_object(),
           }
           @stdio.stdout.writeln(response.stringify())
         }

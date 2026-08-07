@@ -10,7 +10,7 @@ struct Loader {
 
 ///|
 pub fn Loader::new(cwd : String, logger~ : @pino.Logger) -> Loader {
-  return Loader::{ cwd, logger, rules: {} }
+  return Loader::{ cwd, logger, rules: Map([]) }
 }
 
 ///|

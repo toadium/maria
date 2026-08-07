@@ -52,12 +52,16 @@ async fn collect_files_recursive(
       if entry.name is ".git" {
         continue
       }
-      if (try? @git.is_ignored(entry.path, cwd=base_dir)) is Ok(ignored) {
-        if ignored {
-          continue
+      let ignored = try @git.is_ignored(entry.path, cwd=base_dir) catch {
+        _ => {
+          does_respect_gitignore.val = false
+          false
         }
-      } else {
-        does_respect_gitignore.val = false
+      } noraise {
+        ignored => ignored
+      }
+      if ignored {
+        continue
       }
     }
     let full_path = Path::join(directory, entry.name).to_string()

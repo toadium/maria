@@ -253,7 +253,7 @@ async test "calculate_pruning/with_tools_parameter" (t : @test.Test) {
     let tools = [
       @openai.tool(name="test_tool", description="A test tool", parameters={
         "type": "object",
-        "properties": {},
+        "properties": Json::empty_object(),
       }),
     ]
     let pruner = @context_pruner.Pruner::new(

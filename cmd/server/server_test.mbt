@@ -341,7 +341,7 @@ async test "POST /v1/cancel" (t : @test.Test) {
       }
       let (r, b) = @httpx.post_json(
         "http://localhost:\{server.port()}/v1/cancel",
-        {},
+        Json::empty_object(),
       )
       json_inspect(r.code, content=200)
       json_inspect(b.json(), content={
@@ -457,7 +457,7 @@ async test "GET /v1/tools" (t : @test.Test) {
       ["list_files", "read_file", "todo", "search_files", "write_to_file"],
     )
     json_inspect(r.code, content=200)
-    json_inspect(b.json(), content={})
+    json_inspect(b.json(), content=Json::empty_object())
     let (r, b) = @http.get("http://localhost:\{server.port()}/v1/tools")
     json_inspect(r.code, content=200)
     let b = b.json()
@@ -487,7 +487,7 @@ async test "GET /v1/system-prompt" (t : @test.Test) {
       "New system prompt.",
     )
     json_inspect(r.code, content=200)
-    json_inspect(b.json(), content={})
+    json_inspect(b.json(), content=Json::empty_object())
     let (r, b) = @http.get("http://localhost:\{server.port()}/v1/system-prompt")
     json_inspect(r.code, content=200)
     let b = b.json()
@@ -568,7 +568,7 @@ async test "GET /v1/external-event/cancel" (t : @test.Test) {
     json_inspect(queued, content=true)
     let (r, _) = @httpx.post_json(
       "http://localhost:\{server.port()}/v1/external-event/cancel",
-      {},
+      Json::empty_object(),
     )
     json_inspect(r.code, content=200)
     let events = collector.wait()

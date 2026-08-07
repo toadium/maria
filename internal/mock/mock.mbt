@@ -31,7 +31,7 @@ impl @clock.Clock for Clock with fn now(self : Clock) -> @clock.Timestamp {
 
 ///|
 impl @clock.Clock for Clock with fn now_str(self : Clock) -> String {
-  let t = self.now()
+  let t = @clock.Clock::now(self)
   "Tick:\{t.ms()}"
 }
 
@@ -338,7 +338,12 @@ async fn eprintln(msg : String) -> Unit {
 
 ///|
 fn init {
-  if (try? @os.getenv("CI")) is Ok(Some("1" | "true")) {
+  if (try @os.getenv("CI") catch {
+      _ => false
+    } noraise {
+      Some("1" | "true") => true
+      _ => false
+    }) {
     @os.atexit(() => println(@debug.to_string(os_args) + " exited"))
   }
 }

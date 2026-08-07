@@ -129,7 +129,7 @@ fn parse_authority(
   }
 
   let s = source
-  let host = @buffer.new()
+  let host = Buffer()
   let mut port_k = None
   for state = s {
     match state {
@@ -181,7 +181,7 @@ fn parse_authority(
         continue k
       }
       [c, .. s] => {
-        host.write_char(c)
+        host.write_bytes(@encoding/utf8.encode(c.to_string()))
         continue s
       }
     }

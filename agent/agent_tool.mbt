@@ -91,7 +91,7 @@ async fn Agent::execute_tool(
   let arguments : Json = match tool_call.arguments {
     None | Some("") =>
       // when models like haiku return empty arguments, we treat it as empty object 
-      {}
+      Json::empty_object()
     Some(arguments) =>
       @json.parse(arguments) catch {
         error => {

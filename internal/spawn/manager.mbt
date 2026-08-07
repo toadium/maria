@@ -22,7 +22,7 @@ pub fn Manager::new(cwd~ : String) -> Manager {
   Manager::{
     id: 0,
     cwd,
-    process: {},
+    process: Map([]),
     spawn: @aqueue.Queue::new(kind=Unbounded),
   }
 }

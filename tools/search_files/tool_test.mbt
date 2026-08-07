@@ -41,7 +41,7 @@ async test "search_files-moon-definition" (t : @test.Test) {
       "moon.mod.json": { "name": "username/example", "version": "0.1.0" }
       .to_json()
       .stringify(indent=2),
-      "moon.pkg.json": Json::object({}).stringify(indent=2),
+      "moon.pkg.json": Json::object(Map([])).stringify(indent=2),
       "main.mbt": (
         #|///|
         #|pub fn greet(name : String) -> String {
@@ -81,7 +81,7 @@ async test "search_files-moon-references" (t : @test.Test) {
       "moon.mod.json": { "name": "username/example", "version": "0.1.0" }
       .to_json()
       .stringify(indent=2),
-      "moon.pkg.json": Json::object({}).stringify(indent=2),
+      "moon.pkg.json": Json::object(Map([])).stringify(indent=2),
       "main.mbt": (
         #|///|
         #|pub fn greet(name : String) -> String {

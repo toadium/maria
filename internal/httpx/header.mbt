@@ -42,7 +42,7 @@ pub impl Show for Header with fn output(self : Header, logger : &Logger) -> Unit
 ///|
 /// Creates an empty header map.
 pub fn Header::new() -> Header {
-  Header({})
+  Header(Map([]))
 }
 
 ///|

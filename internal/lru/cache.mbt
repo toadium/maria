@@ -18,7 +18,7 @@ struct Cache[K, V] {
 
 ///|
 pub fn[K : Eq + Hash, V] cache(max_size? : Int = 100) -> Cache[K, V] {
-  Cache::{ timestamp: 0, cache: {}, max_size }
+  Cache::{ timestamp: 0, cache: Map([]), max_size }
 }
 
 ///|

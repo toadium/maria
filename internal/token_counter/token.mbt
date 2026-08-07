@@ -39,7 +39,7 @@ pub fn Counter::new(
     overhead: SystemOverhead,
     // tools: false,
     encoding: @tiktoken.cl100k_base(),
-    calibration: {},
+    calibration: Map([]),
     calibration_alpha,
   }
 }

@@ -12,8 +12,8 @@ impl @tool.ToolOutput for TodoResult with fn to_message(self) {
 ///|
 pub impl Show for TodoResult with fn output(self : TodoResult, logger : &Logger) -> Unit {
   match self {
-    Read(result) => result.output(logger)
-    Write(result) => result.output(logger)
+    Read(result) => Show::output(result, logger)
+    Write(result) => Show::output(result, logger)
   }
 }
 

@@ -40,6 +40,7 @@ async test "write_to_file" (t : @test.Test) {
 }
 
 ///|
+#cfg(not(platform="windows"))
 async test "write_to_file/no-write-permission" (t : @test.Test) {
   @mock.run(t, mock => {
     let file_path = Path::join(mock.cwd.path(), "file.txt").to_string()
@@ -60,4 +61,10 @@ async test "write_to_file/no-write-permission" (t : @test.Test) {
     // Restore write permission for cleanup
     @fs.chmod(file_path, 0o644)
   })
+}
+
+///|
+#cfg(platform="windows")
+async fn _keep_fs_import(_ : @test.Test) -> Unit {
+  ignore(@fs.exists("."))
 }

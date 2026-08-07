@@ -21,7 +21,7 @@ pub async fn chat(
   model~ : @model.Model,
   request : Request,
   logger? : @pino.Logger = @pino.logger("openai", @pino.Transport::sink()),
-  extra_body? : Map[String, Json] = {},
+  extra_body? : Map[String, Json] = Map([]),
 ) -> ChatCompletion {
   // Dispatch based on model type
   match model.model_type {

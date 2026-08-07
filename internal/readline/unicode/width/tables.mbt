@@ -3035,8 +3035,8 @@ let emoji_modifier_leaf_6 : Array[(UInt, UInt)] = [
 let emoji_modifier_leaf_7 : Array[(UInt, UInt)] = [(0xC3, 0xC5), (0xF0, 0xF8)]
 
 ///|
-/// Test data for normalization tests
-let normalization_test_data : Array[(String, String, String, String, String)] = [
+/// Test data for normalization tests (part 1)
+let normalization_test_data_1 : Array[(String, String, String, String, String)] = [
   ("Ḋ", "Ḋ", "Ḋ", "Ḋ", "Ḋ"),
   ("Ḍ", "Ḍ", "Ḍ", "Ḍ", "Ḍ"),
   ("Ḍ̇", "Ḍ̇", "Ḍ̇", "Ḍ̇", "Ḍ̇"),
@@ -9998,6 +9998,11 @@ let normalization_test_data : Array[(String, String, String, String, String)] = 
   ("뷌", "뷌", "뷌", "뷌", "뷌"),
   ("뷍", "뷍", "뷍", "뷍", "뷍"),
   ("뷎", "뷎", "뷎", "뷎", "뷎"),
+]
+
+///|
+/// Test data for normalization tests (part 2)
+let normalization_test_data_2 : Array[(String, String, String, String, String)] = [
   ("뷏", "뷏", "뷏", "뷏", "뷏"),
   ("뷐", "뷐", "뷐", "뷐", "뷐"),
   ("뷑", "뷑", "뷑", "뷑", "뷑"),
@@ -16998,6 +17003,11 @@ let normalization_test_data : Array[(String, String, String, String, String)] = 
   ("搜", "搜", "搜", "搜", "搜"),
   ("摒", "摒", "摒", "摒", "摒"),
   ("敖", "敖", "敖", "敖", "敖"),
+]
+
+///|
+/// Test data for normalization tests (part 3)
+let normalization_test_data_3 : Array[(String, String, String, String, String)] = [
   ("晴", "晴", "晴", "晴", "晴"),
   ("朗", "朗", "朗", "朗", "朗"),
   ("望", "望", "望", "望", "望"),
@@ -24413,6 +24423,12 @@ let normalization_test_data : Array[(String, String, String, String, String)] = 
     "𖵪𖵨", "𖵪𖵨", "𖵪𖵨", "𖵪𖵨", "𖵪𖵨",
   ),
 ]
+
+///|
+/// Test data for normalization tests
+let normalization_test_data : Array[(String, String, String, String, String)] = normalization_test_data_1 +
+  normalization_test_data_2 +
+  normalization_test_data_3
 
 ///|
 /// Test that normalization test data is accessible and well-formed

@@ -81,7 +81,7 @@ fn reverse_string(
       [_, .. rest] => continue rest
     }
   }
-  let buffer = @buffer.new()
+  let buffer = Buffer()
   for i = parts.length() - 1; i > 0; i = i - 1 {
     buffer.write_bytesview(parts[i])
     buffer.write_byte(to)

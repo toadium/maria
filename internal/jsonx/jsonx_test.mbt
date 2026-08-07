@@ -40,9 +40,13 @@ test "@jsonx.Object::required" {
 ///|
 test "@jsonx.Object::required/missing-field" {
   let object : Json = { "name": "Bob" }
-  let people : Result[People, @json.JsonDecodeError] = try? @json.from_json(
-    object,
-  )
+  let people : Result[People, @json.JsonDecodeError] = try
+    @json.from_json(object)
+  catch {
+    e => Err(e)
+  } noraise {
+    x => Ok(x)
+  }
   json_inspect(people, content={
     "Err": ["JsonDecodeError", ["/age", "field 'age' is required"]],
   })
@@ -75,9 +79,13 @@ test "@jsonx.Object::optional/invalid-type" {
     "active": true,
     "nickname": 123.0,
   }
-  let people : Result[People, @json.JsonDecodeError] = try? @json.from_json(
-    object,
-  )
+  let people : Result[People, @json.JsonDecodeError] = try
+    @json.from_json(object)
+  catch {
+    e => Err(e)
+  } noraise {
+    x => Ok(x)
+  }
   json_inspect(people, content={
     "Err": [
       "JsonDecodeError",

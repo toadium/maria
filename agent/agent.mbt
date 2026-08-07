@@ -262,7 +262,7 @@ pub async fn Agent::start(agent : Agent) -> Unit {
       )
 
       // Enable web search plugin if configured
-      let extra_body : Map[String, Json] = {}
+      let extra_body : Map[String, Json] = Map([])
       if web_search {
         // We only support web search plugin for OpenRouter models for now.
         //
@@ -419,7 +419,7 @@ pub async fn new(
     history,
     cwd: cwd.to_owned(),
     model,
-    tools: {},
+    tools: Map([]),
     input_queue: [],
     pending_queue: @deque.Deque([]),
     event_target,

@@ -1,5 +1,7 @@
-#include <execinfo.h>
 #include <moonbit.h>
+
+#ifndef _WIN32
+#include <execinfo.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
@@ -19,3 +21,14 @@ moonbit_maria_backtrace(int32_t n) {
   free(symbols);
   return result;
 }
+#else
+/* Windows stub: backtrace not available. Returns NULL. */
+#include <stddef.h>
+
+MOONBIT_FFI_EXPORT
+moonbit_bytes_t *
+moonbit_maria_backtrace(int32_t n) {
+  (void)n;
+  return NULL;
+}
+#endif

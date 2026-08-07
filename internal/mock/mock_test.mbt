@@ -34,7 +34,7 @@ async test "add_json_tree" (t : @test.Test) {
         "nested.txt": "world",
         "deep": { "a.txt": "aaa", "b.txt": "bbb" },
       },
-      "empty_dir": {},
+      "empty_dir": Json::empty_object(),
     })
     // Verify root file
     let root_file_path = Path::join(mock.cwd.path(), "file.txt").to_string()
@@ -62,7 +62,7 @@ async test "add_json_tree" (t : @test.Test) {
 async test "add_json_tree/empty_tree" (t : @test.Test) {
   @mock.run(t, mock => {
     // Empty tree should work without errors
-    mock.add_json_tree({})
+    mock.add_json_tree(Map([]))
     let entries = mock.cwd.list()
     inspect(entries.length(), content="0")
   })

@@ -19,17 +19,25 @@ async test "readlink" (t : @test.Test) {
       content="source.txt",
     )
     json_inspect(
-      (try? @fsx.readlink(
-        Path::join(mock.cwd.path(), "nonexistent").to_string(),
-      ))
-      is Err(@errno.Errno(errno)) &&
-      errno == @errno.enoent,
+      try
+        @fsx.readlink(Path::join(mock.cwd.path(), "nonexistent").to_string())
+      catch {
+        @errno.Errno(errno) => errno == @errno.enoent
+        _ => false
+      } noraise {
+        _ => false
+      },
       content=true,
     )
     json_inspect(
-      (try? @fsx.readlink(Path::join(mock.cwd.path(), "source.txt").to_string()))
-      is Err(@errno.Errno(errno)) &&
-      errno == @errno.einval,
+      try
+        @fsx.readlink(Path::join(mock.cwd.path(), "source.txt").to_string())
+      catch {
+        @errno.Errno(errno) => errno == @errno.einval
+        _ => false
+      } noraise {
+        _ => false
+      },
       content=true,
     )
   })

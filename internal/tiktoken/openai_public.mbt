@@ -1,6 +1,6 @@
 ///|
 pub fn cl100k_base() -> Encoding raise {
-  let mergeable_ranks = {}
+  let mergeable_ranks = Map([])
   for line in cl100k_base_mergeable_ranks.split("\n") {
     if line is "" {
       continue

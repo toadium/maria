@@ -1,4 +1,5 @@
 ///|
+#cfg(not(platform="windows"))
 using @path {type Path}
 
 ///|
@@ -157,6 +158,7 @@ async test "replace_in_file/agentic" (t : @test.Test) {
 // }
 
 ///|
+#cfg(not(platform="windows"))
 async test "replace_in_file/no-write-permission" (t : @test.Test) {
   @mock.run(t, mock => {
     let manager = @file.manager(cwd=mock.cwd.path())
@@ -181,4 +183,10 @@ async test "replace_in_file/no-write-permission" (t : @test.Test) {
     // Restore write permission for cleanup
     @fs.chmod(file_path, 0o644)
   })
+}
+
+///|
+#cfg(platform="windows")
+async fn _keep_fs_import(_ : @test.Test) -> Unit {
+  ignore(@fs.exists("."))
 }

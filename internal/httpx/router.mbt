@@ -38,7 +38,7 @@ priv struct Layer {
 
 ///|
 fn Layer::new() -> Layer {
-  Layer::{ routes: MethodMap::new(), matches: {}, default: None }
+  Layer::{ routes: MethodMap::new(), matches: Map([]), default: None }
 }
 
 ///|

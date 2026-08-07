@@ -27,30 +27,28 @@ pub let version : Version = try! Version::parse(version_string)
 
 ///|
 pub fn Version::parse(string : String) -> Version raise {
-  lexmatch string with longest {
-    (
-      ("[[:digit:]]+" as major)
-      "\."
-      ("([[:digit:]]+)" as minor)
-      "\."
-      ("([[:digit:]]+)" as patch)
-    ) => {
+  lexscan string with longest {
+    (re"^[[:digit:]]+" as major) +
+    re"\." +
+    (re"([[:digit:]]+)" as minor) +
+    re"\." +
+    (re"([[:digit:]]+)" as patch) +
+    re"$" => {
       let major = @string.parse_int(major)
       let minor = @string.parse_int(minor)
       let patch = @string.parse_int(patch)
       Version::{ major, minor, patch, build: None }
     }
-    (
-      ("[[:digit:]]+" as major)
-      "\."
-      ("([[:digit:]]+)" as minor)
-      "\."
-      ("([[:digit:]]+)" as patch)
-      "\+"
-      ("([0-9]+)" as build_number)
-      "\."
-      ("([0-9a-fA-F]+)" as commit)
-    ) => {
+    (re"^[[:digit:]]+" as major) +
+    re"\." +
+    (re"([[:digit:]]+)" as minor) +
+    re"\." +
+    (re"([[:digit:]]+)" as patch) +
+    re"\+" +
+    (re"([0-9]+)" as build_number) +
+    re"\." +
+    (re"([0-9a-fA-F]+)" as commit) +
+    re"$" => {
       let major = @string.parse_int(major)
       let minor = @string.parse_int(minor)
       let patch = @string.parse_int(patch)

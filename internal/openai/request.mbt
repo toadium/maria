@@ -36,19 +36,19 @@ pub impl ToJson for Request with fn to_json(self : Request) -> Json {
     json["tools"] = self.tools.to_json()
   }
   if self.usage is Some(usage) {
-    json["usage"] = usage.to_json()
+    json["usage"] = ToJson::to_json(usage)
   }
   if self.user is Some(user) {
     json["user"] = Json::string(user)
   }
   if self.max_tokens is Some(max_tokens) {
-    json["max_tokens"] = max_tokens.to_json()
+    json["max_tokens"] = ToJson::to_json(max_tokens)
   }
   if self.temperature is Some(temperature) {
-    json["temperature"] = temperature.to_json()
+    json["temperature"] = ToJson::to_json(temperature)
   }
   if self.reasoning_effort is Some(reasoning_effort) {
-    json["reasoning_effort"] = reasoning_effort.to_json()
+    json["reasoning_effort"] = ToJson::to_json(reasoning_effort)
   }
   if self.response_format is Some(response_format) {
     json["response_format"] = response_format.to_json()

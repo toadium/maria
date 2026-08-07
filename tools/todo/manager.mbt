@@ -195,10 +195,10 @@ fn Todo::get(self : Todo, index : Int) -> Item {
 ///|
 /// Remove common list prefixes from a line
 fn remove_list_prefixes(line : StringView) -> StringView {
-  lexmatch line with longest {
-    ("[0-9]+\.[[:space:]]*", rest) => rest
-    ("-[[:space:]]*", rest) => rest
-    ("\*[[:space:]]*", rest) => rest
+  lexscan line with longest {
+    (re"^[0-9]+\.[[:space:]]*", after=rest) => rest
+    (re"^-[[:space:]]*", after=rest) => rest
+    (re"^\*[[:space:]]*", after=rest) => rest
     _ => line
   }
 }
@@ -210,7 +210,7 @@ test "remove_list_prefixes" {
     "2.   Second task", "- Bullet point", "* Another bullet", "No prefix here", "-  Indented bullet",
     "*\tTabbed bullet", "3.\tTabbed numbered",
   ]
-  let output = {}
+  let output = Map([])
   for d in data {
     output[d] = remove_list_prefixes(d)
   }

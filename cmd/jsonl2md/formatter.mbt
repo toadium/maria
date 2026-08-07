@@ -27,7 +27,7 @@ fn Formatter::new(
     id: None,
     count: 1,
     lines: [],
-    tools: {},
+    tools: Map([]),
     submit_fixed_files: [],
     start_timestamp: None,
   }
@@ -269,18 +269,14 @@ fn recover_diagnostics(content : String) -> String raise {
         recovered.push(line)
         // Matches
         // error[<code>]: <file>:<line>:<column>: ...
-        lexmatch line with longest {
+        lexscan line with longest {
           (
-            "error\["
-            "[[:digit:]]{4}"
-            "\]:[[:space:]]+"
-            "[^:]*"
-            ":"
-            ("[[:digit:]]+" as line)
-            ":"
-            ("[[:digit:]]+" as column)
-            ":[[:space:]]+",
-            _
+            re"^error\[[[:digit:]]{4}\]:[[:space:]]+[^:]*:" +
+            (re"[[:digit:]]+" as line) +
+            re":" +
+            (re"[[:digit:]]+" as column) +
+            re":[[:space:]]+",
+            after=_,
           ) => {
             let line = @string.parse_int(line) - 1
             let context_start = @cmp.maximum(0, line - ContextLines)
@@ -504,7 +500,7 @@ async fn Formatter::format_log_entry(self : Formatter, json : Json) -> Unit {
           id: Some(id),
           count: 1,
           lines: [],
-          tools: {},
+          tools: Map([]),
           submit_fixed_files: [],
           start_timestamp: None,
         }

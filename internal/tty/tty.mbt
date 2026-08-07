@@ -39,12 +39,21 @@ pub fn window_size() -> Size raise {
 }
 
 ///|
+#cfg(not(platform="windows"))
 extern "c" fn tty_set_raw_mode(fd : Int) -> Int = "moonbit_maria_tty_set_raw_mode"
 
 ///|
+#cfg(not(platform="windows"))
 pub fn set_raw_mode(fd : Int) -> Unit raise {
   let result = tty_set_raw_mode(fd)
   if result != 0 {
     raise @errno.Errno(result)
   }
+}
+
+///|
+#cfg(platform="windows")
+pub fn set_raw_mode(fd : Int) -> Unit raise {
+  ignore(fd)
+  raise @errno.Errno(@errno.enotty)
 }

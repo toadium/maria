@@ -69,9 +69,13 @@ test "as_int64/without-repr" {
 ///|
 test "as_int64/string-type" {
   let json : Json = { "value": "not a number" }
-  let result : Result[Int64Data, @json.JsonDecodeError] = try? @json.from_json(
-    json,
-  )
+  let result : Result[Int64Data, @json.JsonDecodeError] = try
+    @json.from_json(json)
+  catch {
+    e => Err(e)
+  } noraise {
+    x => Ok(x)
+  }
   json_inspect(result, content={
     "Err": ["JsonDecodeError", ["/value", "Int64::as_int64: expected number"]],
   })
@@ -80,9 +84,13 @@ test "as_int64/string-type" {
 ///|
 test "as_int64/invalid-repr" {
   let json : Json = { "value": Json::number(0.0, repr="not_a_number") }
-  let result : Result[Int64Data, @json.JsonDecodeError] = try? @json.from_json(
-    json,
-  )
+  let result : Result[Int64Data, @json.JsonDecodeError] = try
+    @json.from_json(json)
+  catch {
+    e => Err(e)
+  } noraise {
+    x => Ok(x)
+  }
   match result {
     Err(_) => ()
     Ok(_) => fail("expected error for invalid repr")
@@ -99,9 +107,13 @@ test "required_int64/present" {
 ///|
 test "required_int64/missing" {
   let json : Json = { "other": 123.0 }
-  let result : Result[Int64Data, @json.JsonDecodeError] = try? @json.from_json(
-    json,
-  )
+  let result : Result[Int64Data, @json.JsonDecodeError] = try
+    @json.from_json(json)
+  catch {
+    e => Err(e)
+  } noraise {
+    x => Ok(x)
+  }
   json_inspect(result, content={
     "Err": ["JsonDecodeError", ["/value", "field 'value' is required"]],
   })

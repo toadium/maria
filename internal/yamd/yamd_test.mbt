@@ -84,7 +84,7 @@ test {
   let content =
     #|# No front matter
   let { meta, text } = @yamd.parse(content)
-  json_inspect(meta, content={})
+  json_inspect(meta, content=Json::empty_object())
   inspect(text, content="")
 }
 

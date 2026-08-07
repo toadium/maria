@@ -1,7 +1,7 @@
 ///|
 let schema : @tool.JsonSchema = @tool.JsonSchema::from_json({
   "type": "object",
-  "properties": {},
+  "properties": Json::empty_object(),
   "required": [],
 })
 

@@ -28,5 +28,5 @@ async fn Server::set_system_prompt(
       raise @httpx.JsonError::from_error(@status.BadRequest, error)
   }
   self.maria.agent.set_system_prompt(req.0)
-  w.send_json(code=200, {})
+  w.send_json(code=200, Json::empty_object())
 }

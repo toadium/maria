@@ -23,14 +23,14 @@ pub fn Encoding::new(
   special_tokens~ : Map[String, Int],
   pattern~ : Pattern,
 ) -> Encoding {
-  let encoder : Map[Bytes, Int] = {}
+  let encoder : Map[Bytes, Int] = Map([])
   let decoder = FixedArray::make(mergeable_ranks.length(), b"")
   for piece, rank in mergeable_ranks {
     encoder[piece] = rank
     decoder[rank] = piece
   }
-  let special_encoder = {}
-  let special_decoder = {}
+  let special_encoder = Map([])
+  let special_decoder = Map([])
   for token, rank in special_tokens {
     special_encoder[token] = rank
     special_decoder[rank] = @encoding/utf8.encode(token)
@@ -224,7 +224,7 @@ pub fn Encoding::decode(
   self : Encoding,
   tokens : ArrayView[Int],
 ) -> String raise DecodingError {
-  let buffer = @buffer.new()
+  let buffer = Buffer()
   for token in tokens {
     if token >= 0 && token < self.decoder.length() {
       let piece = self.decoder[token]

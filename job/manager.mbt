@@ -71,7 +71,7 @@ pub impl @json.FromJson for Id with fn from_json(
 
 ///|
 pub fn Manager::new(cwd~ : String) -> Manager {
-  Manager::{ cwd, id: 0, process: @spawn.Manager::new(cwd~), jobs: {} }
+  Manager::{ cwd, id: 0, process: @spawn.Manager::new(cwd~), jobs: Map([]) }
 }
 
 ///|

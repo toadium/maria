@@ -1,4 +1,25 @@
 #include "moonbit.h"
+
+#ifdef _WIN32
+// Windows stubs: termios/ioctl not available
+MOONBIT_FFI_EXPORT
+int32_t
+moonbit_maria_tty_is_a_tty(int32_t fd) {
+  return 0;
+}
+
+MOONBIT_FFI_EXPORT
+int32_t
+moonbit_maria_tty_get_win_size(int32_t *size) {
+  return -1;
+}
+
+MOONBIT_FFI_EXPORT
+int32_t
+moonbit_maria_tty_set_raw_mode(int32_t fd) {
+  return -1;
+}
+#else
 #include <errno.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
@@ -45,3 +66,4 @@ moonbit_maria_tty_set_raw_mode(int32_t fd) {
   }
   return 0;
 }
+#endif

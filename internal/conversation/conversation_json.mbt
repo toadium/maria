@@ -15,7 +15,7 @@ pub impl ToJson for Conversation with fn to_json(self : Conversation) -> Json {
 ///|
 /// Create UUID from timestamp
 fn uuid_from_timestamp(ts : @clock.Timestamp) -> @uuid.Uuid {
-  let buf = @buffer.new()
+  let buf = Buffer()
   buf.write_bytes(Bytes::make(8, 0))
   buf.write_int64_le(ts.ms())
   @uuid.of_bytes(buf.to_bytes())

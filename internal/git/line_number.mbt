@@ -100,18 +100,18 @@ fn add_line_number_to_diff(diff_text : String) -> String raise {
         "\{state.marker} \{original_line_number} \{modified_line_number} \\\{line}",
       )
     } else {
-      lexmatch line with longest {
+      lexscan line with longest {
         (
-          "@@[[:space:]]+-"
-          ("[[:digit:]]+" as os)
-          ","
-          ("[[:digit:]]+" as oc)
-          "[[:space:]]+\+"
-          ("[[:digit:]]+" as ms)
-          ","
-          ("[[:digit:]]+" as mc)
-          "[[:space:]]+@@",
-          _
+          re"^@@[[:space:]]+-" +
+          (re"[[:digit:]]+" as os) +
+          re"," +
+          (re"[[:digit:]]+" as oc) +
+          re"[[:space:]]+\+" +
+          (re"[[:digit:]]+" as ms) +
+          re"," +
+          (re"[[:digit:]]+" as mc) +
+          re"[[:space:]]+@@",
+          after=_,
         ) => {
           let original_start = @string.parse_int(os)
           let original_count = @string.parse_int(oc)
@@ -128,7 +128,7 @@ fn add_line_number_to_diff(diff_text : String) -> String raise {
           })
           numbered_lines.push(line.to_owned())
         }
-        line => numbered_lines.push(line.to_owned())
+        _ => numbered_lines.push(line.to_owned())
       }
     }
   }

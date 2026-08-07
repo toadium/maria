@@ -1,5 +1,20 @@
-#include <fcntl.h>
 #include <moonbit.h>
+
+#ifdef _WIN32
+// Windows stub: file locking via fcntl not available
+MOONBIT_FFI_EXPORT
+int32_t
+moonbit_maria_fsx_lock_file(int32_t fd) {
+  return -1;
+}
+
+MOONBIT_FFI_EXPORT
+int32_t
+moonbit_maria_fsx_get_lock_owner(int32_t fd) {
+  return -1;
+}
+#else
+#include <fcntl.h>
 
 MOONBIT_FFI_EXPORT
 int32_t
@@ -30,3 +45,4 @@ moonbit_maria_fsx_get_lock_owner(int32_t fd) {
   }
   return fl.l_pid; // return the PID of the lock owner
 }
+#endif

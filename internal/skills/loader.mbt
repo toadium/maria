@@ -62,7 +62,7 @@ pub fn Loader::new(
     Some(home) => home
     None => @os.home()
   }
-  Loader::{ home, cwd, logger, skills: {} }
+  Loader::{ home, cwd, logger, skills: Map([]) }
 }
 
 ///|

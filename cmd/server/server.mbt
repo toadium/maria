@@ -312,7 +312,7 @@ async fn Server::get_queued_messages(
 /// Lists the registered tools and whether each one is currently enabled.
 async fn Server::get_tools(self : Server, w : @httpx.ResponseWriter) -> Unit {
   let tools = self.maria.agent.tools()
-  let tools_json : Map[String, Json] = {}
+  let tools_json : Map[String, Json] = Map([])
   for name, tool in tools {
     tools_json[name] = { "enabled": tool.enabled() }
   }
