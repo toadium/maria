@@ -6,7 +6,7 @@ pub struct ChatCompletionChunkChoiceDeltaToolCallFunction {
 } derive(ToJson)
 
 ///|
-impl @json.FromJson for ChatCompletionChunkChoiceDeltaToolCallFunction with from_json(
+impl @json.FromJson for ChatCompletionChunkChoiceDeltaToolCallFunction with fn from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> ChatCompletionChunkChoiceDeltaToolCallFunction {

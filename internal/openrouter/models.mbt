@@ -17,7 +17,7 @@ pub struct Model {
 const PackageName = "@moonbitlang/maria/internal/openrouter"
 
 ///|
-pub impl @json.FromJson for Model with from_json(
+pub impl @json.FromJson for Model with fn from_json(
   json : Json,
   path : @json.JsonPath,
 ) -> Model raise @json.JsonDecodeError {
@@ -192,7 +192,7 @@ pub struct Architecture {
 } derive(ToJson)
 
 ///|
-pub impl @json.FromJson for Architecture with from_json(
+pub impl @json.FromJson for Architecture with fn from_json(
   json : Json,
   path : @json.JsonPath,
 ) -> Architecture raise @json.JsonDecodeError {
@@ -269,7 +269,7 @@ pub struct Pricing {
 } derive(ToJson)
 
 ///|
-pub impl @json.FromJson for Pricing with from_json(
+pub impl @json.FromJson for Pricing with fn from_json(
   json : Json,
   path : @json.JsonPath,
 ) -> Pricing raise @json.JsonDecodeError {
@@ -371,7 +371,7 @@ pub struct TopProvider {
 } derive(ToJson)
 
 ///|
-pub impl @json.FromJson for TopProvider with from_json(
+pub impl @json.FromJson for TopProvider with fn from_json(
   json : Json,
   path : @json.JsonPath,
 ) -> TopProvider raise @json.JsonDecodeError {

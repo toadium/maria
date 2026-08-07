@@ -10,7 +10,7 @@ struct ReadFileToolResult {
 } derive(ToJson, FromJson)
 
 ///|
-impl @tool.ToolOutput for ReadFileToolResult with to_message(self) {
+impl @tool.ToolOutput for ReadFileToolResult with fn to_message(self) {
   @ai.tool_message(content=self.to_string(), tool_call_id="")
 }
 
@@ -24,7 +24,7 @@ fn count_file_tokens(content : String) -> Int raise {
 }
 
 ///|
-pub impl Show for ReadFileToolResult with output(
+pub impl Show for ReadFileToolResult with fn output(
   self : ReadFileToolResult,
   logger : &Logger,
 ) -> Unit {

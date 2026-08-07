@@ -46,7 +46,7 @@ priv struct Int64Data {
 } derive(ToJson)
 
 ///|
-impl @json.FromJson for Int64Data with from_json(json, path) {
+impl @json.FromJson for Int64Data with fn from_json(json, path) {
   let object = @jsonx.as_object(json, path~)
   let value = object.required_int64("value", path~)
   { value, }
@@ -131,7 +131,7 @@ priv struct OptionalInt64Data {
 }
 
 ///|
-impl @json.FromJson for OptionalInt64Data with from_json(json, path) {
+impl @json.FromJson for OptionalInt64Data with fn from_json(json, path) {
   let object = @jsonx.as_object(json, path~)
   let value = object.optional_int64("value", path~)
   { value, }

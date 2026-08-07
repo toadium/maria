@@ -9,12 +9,12 @@ priv struct DaemonInfo {
 }
 
 ///|
-impl ToJson for DaemonInfo with to_json(self) {
+impl ToJson for DaemonInfo with fn to_json(self) {
   { "version": self.version.to_string(), "pid": self.pid, "port": self.port }
 }
 
 ///|
-impl @json.FromJson for DaemonInfo with from_json(
+impl @json.FromJson for DaemonInfo with fn from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> DaemonInfo raise {

@@ -8,7 +8,7 @@ priv struct People {
 } derive(ToJson)
 
 ///|
-impl @json.FromJson for People with from_json(
+impl @json.FromJson for People with fn from_json(
   json : Json,
   path : @json.JsonPath,
 ) {
@@ -92,7 +92,7 @@ priv struct KeyValues {
 }
 
 ///|
-impl @json.FromJson for KeyValues with from_json(json, path) {
+impl @json.FromJson for KeyValues with fn from_json(json, path) {
   let object = @jsonx.as_object(json, path~)
   let keys : Array[String] = []
   for key, _ in object.iter2() {

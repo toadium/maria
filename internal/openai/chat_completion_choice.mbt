@@ -16,7 +16,9 @@ pub fn ChatCompletionChoice::new(
 }
 
 ///|
-impl ToJson for ChatCompletionChoice with to_json(self : ChatCompletionChoice) -> Json {
+impl ToJson for ChatCompletionChoice with fn to_json(
+  self : ChatCompletionChoice,
+) -> Json {
   let json : Map[String, Json] = {
     "index": self.index,
     "message": self.message,
@@ -28,7 +30,7 @@ impl ToJson for ChatCompletionChoice with to_json(self : ChatCompletionChoice) -
 }
 
 ///|
-impl @json.FromJson for ChatCompletionChoice with from_json(
+impl @json.FromJson for ChatCompletionChoice with fn from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> ChatCompletionChoice {

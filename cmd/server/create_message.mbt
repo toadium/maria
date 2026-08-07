@@ -15,7 +15,7 @@ pub fn CreateMessageRequest::new(
 }
 
 ///|
-pub impl ToJson for CreateMessageRequest with to_json(
+pub impl ToJson for CreateMessageRequest with fn to_json(
   self : CreateMessageRequest,
 ) -> Json {
   let object : Map[String, Json] = {
@@ -28,7 +28,7 @@ pub impl ToJson for CreateMessageRequest with to_json(
 }
 
 ///|
-impl @json.FromJson for CreateMessageRequest with from_json(
+impl @json.FromJson for CreateMessageRequest with fn from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> CreateMessageRequest raise @json.JsonDecodeError {
@@ -71,14 +71,14 @@ pub fn CreateMessageResponse::new(
 }
 
 ///|
-pub impl ToJson for CreateMessageResponse with to_json(
+pub impl ToJson for CreateMessageResponse with fn to_json(
   self : CreateMessageResponse,
 ) -> Json {
   { "id": self.id, "queued": self.queued }
 }
 
 ///|
-pub impl @json.FromJson for CreateMessageResponse with from_json(
+pub impl @json.FromJson for CreateMessageResponse with fn from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> CreateMessageResponse raise @json.JsonDecodeError {

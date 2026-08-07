@@ -27,16 +27,16 @@ pub fn tool_desc(
 
 ///|
 pub(open) trait ToolOutput {
-  to_message(Self) -> @ai.Message
+  fn to_message(Self) -> @ai.Message
 }
 
 ///|
-pub impl ToolOutput for String with to_message(self) {
+pub impl ToolOutput for String with fn to_message(self) {
   @ai.tool_message(content=self, tool_call_id="")
 }
 
 ///|
-pub impl ToolOutput for Json with to_message(self) {
+pub impl ToolOutput for Json with fn to_message(self) {
   @ai.tool_message(content=self.stringify(), tool_call_id="")
 }
 
@@ -62,7 +62,7 @@ pub fn ToolResult::success(output : &ToolOutput) -> ToolResult {
 }
 
 ///|
-pub impl ToJson for ToolResult with to_json(self) {
+pub impl ToJson for ToolResult with fn to_json(self) {
   match self {
     Success(output) => ["Success", output.to_message().content().to_json()]
     Failed(error) => ["Failed", error.to_json()]
@@ -70,7 +70,7 @@ pub impl ToJson for ToolResult with to_json(self) {
 }
 
 ///|
-pub impl Show for ToolResult with output(self : ToolResult, logger : &Logger) -> Unit {
+pub impl Show for ToolResult with fn output(self : ToolResult, logger : &Logger) -> Unit {
   match self {
     Success(output) => logger.write_string(output.to_message().content())
     Failed(ToolFailure(message)) => logger.write_string(message)

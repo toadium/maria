@@ -7,7 +7,7 @@ pub struct ChatCompletionChunkChoice {
 } derive(ToJson)
 
 ///|
-impl @json.FromJson for ChatCompletionChunkChoice with from_json(
+impl @json.FromJson for ChatCompletionChunkChoice with fn from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> ChatCompletionChunkChoice {

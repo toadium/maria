@@ -146,7 +146,7 @@ pub(all) enum CommonModels {
 }
 
 ///|
-pub impl Show for CommonModels with output(
+pub impl Show for CommonModels with fn output(
   self : CommonModels,
   logger : &Logger,
 ) -> Unit {
@@ -214,7 +214,10 @@ pub(all) enum CodexModels {
 }
 
 ///|
-pub impl Show for CodexModels with output(self : CodexModels, logger : &Logger) -> Unit {
+pub impl Show for CodexModels with fn output(
+  self : CodexModels,
+  logger : &Logger,
+) -> Unit {
   match self {
     Gpt5_2 => logger.write_string("gpt-5.2")
   }
@@ -312,7 +315,7 @@ pub(all) enum CopilotModels {
 }
 
 ///|
-pub impl Show for CopilotModels with output(
+pub impl Show for CopilotModels with fn output(
   self : CopilotModels,
   logger : &Logger,
 ) -> Unit {

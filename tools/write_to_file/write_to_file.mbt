@@ -61,12 +61,12 @@ struct Result {
 } derive(FromJson, ToJson)
 
 ///|
-pub impl Show for Result with output(self : Result, logger : &Logger) -> Unit {
+pub impl Show for Result with fn output(self : Result, logger : &Logger) -> Unit {
   logger.write_string("Content written to file at path: \{self.path}")
 }
 
 ///|
-impl @tool.ToolOutput for Result with to_message(self) {
+impl @tool.ToolOutput for Result with fn to_message(self) {
   @ai.tool_message(content=self.to_string(), tool_call_id="")
 }
 

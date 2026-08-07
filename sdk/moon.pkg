@@ -13,7 +13,8 @@ import {
   "moonbitlang/maria/model",
 }
 
+pkgtype(kind: "executable")
+
 options(
-  "is-main": true,
   overrides: [ "moonbitlang/maria/internal/abort" ],
 )

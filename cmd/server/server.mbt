@@ -248,7 +248,7 @@ pub(all) enum ServerStreamEvent {
 }
 
 ///|
-pub impl @httpx.FromEvent for ServerStreamEvent with from_event(
+pub impl @httpx.FromEvent for ServerStreamEvent with fn from_event(
   event : @httpx.Event,
 ) -> ServerStreamEvent raise {
   let { event, data } = event
@@ -262,7 +262,7 @@ pub impl @httpx.FromEvent for ServerStreamEvent with from_event(
 }
 
 ///|
-pub impl @httpx.ToEvent for ServerStreamEvent with to_event(
+pub impl @httpx.ToEvent for ServerStreamEvent with fn to_event(
   self : ServerStreamEvent,
 ) -> @httpx.Event {
   match self {

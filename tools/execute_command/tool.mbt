@@ -51,12 +51,12 @@ fn render_output(
 }
 
 ///|
-impl @tool.ToolOutput for CommandResult with to_message(self) {
+impl @tool.ToolOutput for CommandResult with fn to_message(self) {
   @ai.tool_message(content=self.to_string(), tool_call_id="")
 }
 
 ///|
-pub impl Show for CommandResult with output(
+pub impl Show for CommandResult with fn output(
   self : CommandResult,
   logger : &Logger,
 ) -> Unit {

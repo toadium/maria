@@ -9,6 +9,4 @@ import {
   "moonbitlang/maria/internal/pino",
 }
 
-options(
-  "is-main": true,
-)
+pkgtype(kind: "executable")

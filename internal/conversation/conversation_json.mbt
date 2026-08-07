@@ -1,5 +1,5 @@
 ///|
-pub impl ToJson for Conversation with to_json(self : Conversation) -> Json {
+pub impl ToJson for Conversation with fn to_json(self : Conversation) -> Json {
   let object : Map[String, Json] = { "name": self.name, "id": self.id }
   object["events"] = self.events.to_json()
   object["created_at"] = self.created_at.to_json()
@@ -22,7 +22,7 @@ fn uuid_from_timestamp(ts : @clock.Timestamp) -> @uuid.Uuid {
 }
 
 ///|
-pub impl @json.FromJson for Conversation with from_json(
+pub impl @json.FromJson for Conversation with fn from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> Conversation raise @json.JsonDecodeError {

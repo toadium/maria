@@ -149,7 +149,7 @@ priv struct Range {
 ///|
 /// Decode `{ "start_line": .., "end_line": .. }` objects produced by the
 /// model, surfacing useful path info in error messages when parsing fails.
-impl @json.FromJson for Range with from_json(
+impl @json.FromJson for Range with fn from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> Range raise {

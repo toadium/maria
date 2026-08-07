@@ -20,12 +20,12 @@ struct Uuid {
 } derive(Eq, Compare, Hash)
 
 ///|
-pub impl ToJson for Uuid with to_json(self : Uuid) -> Json {
+pub impl ToJson for Uuid with fn to_json(self : Uuid) -> Json {
   self.to_string().to_json()
 }
 
 ///|
-pub impl @json.FromJson for Uuid with from_json(json, json_path) -> Uuid raise {
+pub impl @json.FromJson for Uuid with fn from_json(json, json_path) -> Uuid raise {
   guard json is String(string) else {
     raise @json.JsonDecodeError((json_path, "Uuid::from_json: expected string"))
   }
@@ -42,7 +42,7 @@ struct Generator(&Source)
 
 ///|
 pub(open) trait Source {
-  uint64(self : Self) -> UInt64
+  fn uint64(self : Self) -> UInt64
 }
 
 ///|
@@ -55,7 +55,7 @@ pub fn Generator::v4(self : Generator) -> Uuid {
 }
 
 ///|
-pub impl Source for @random.Rand with uint64(self : @random.Rand) -> UInt64 {
+pub impl Source for @random.Rand with fn uint64(self : @random.Rand) -> UInt64 {
   self.uint64()
 }
 
@@ -215,12 +215,12 @@ test {
 }
 
 ///|
-pub impl Show for Uuid with output(self : Uuid, logger : &Logger) -> Unit {
+pub impl Show for Uuid with fn output(self : Uuid, logger : &Logger) -> Unit {
   logger.write_string(self.to_string())
 }
 
 ///|
-pub impl @debug.Debug for Uuid with to_repr(self : Uuid) -> @debug.Repr {
+pub impl @debug.Debug for Uuid with fn to_repr(self : Uuid) -> @debug.Repr {
   @debug.Repr::string(self.to_string())
 }
 

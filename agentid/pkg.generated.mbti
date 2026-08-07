@@ -1,0 +1,29 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/agentid"
+
+import {
+  "moonbitlang/core/debug",
+  "moonbitlang/core/json",
+  "moonbitlang/maria/internal/uuid",
+}
+
+// Values
+pub let nil : AgentId
+
+// Errors
+
+// Types and methods
+pub struct AgentId(@uuid.Uuid) derive(Eq, Hash, @debug.Debug)
+pub fn AgentId::from_uuid(@uuid.Uuid) -> Self
+pub fn AgentId::is_nil(Self) -> Bool
+pub fn[Source : @uuid.Source] AgentId::new(Source) -> Self
+pub fn AgentId::to_string(Self) -> String
+pub fn AgentId::to_uuid(Self) -> @uuid.Uuid
+pub impl Show for AgentId
+pub impl ToJson for AgentId
+pub impl @json.FromJson for AgentId
+
+// Type aliases
+
+// Traits
+

@@ -1,0 +1,22 @@
+name = "moonbitlang/maria"
+
+version = "0.1.0"
+
+import {
+  "moonbitlang/async@0.16.8",
+  "moonbitlang/x@0.4.41",
+  "moonbitlang/regexp@0.3.5",
+  "moonbit-community/yaml@0.0.4",
+}
+
+readme = "README.md"
+
+repository = ""
+
+license = "Apache-2.0"
+
+keywords = [ ]
+
+description = ""
+
+preferred_target = "native"

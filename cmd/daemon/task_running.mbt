@@ -78,7 +78,7 @@ fn Running::new(
 }
 
 ///|
-impl @json.FromJson for Running with from_json(
+impl @json.FromJson for Running with fn from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> Running {
@@ -192,7 +192,7 @@ impl @json.FromJson for Running with from_json(
 }
 
 ///|
-impl ToJson for Running with to_json(self : Running) -> Json {
+impl ToJson for Running with fn to_json(self : Running) -> Json {
   let object : Map[String, Json] = {
     "id": self.id.to_string(),
     "cwd": self.cwd,

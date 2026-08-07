@@ -30,7 +30,7 @@ test "Message to_json" {
 }
 
 ///|
-impl @json.FromJson for Message with from_json(
+impl @json.FromJson for Message with fn from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> Message raise @json.JsonDecodeError {
@@ -63,7 +63,7 @@ impl @json.FromJson for Message with from_json(
 }
 
 ///|
-impl ToJson for Message with to_json(self : Message) -> Json {
+impl ToJson for Message with fn to_json(self : Message) -> Json {
   let object : Map[String, Json] = {}
   object["timestamp"] = self.timestamp.to_json()
   if self.usage is Some(usage) {

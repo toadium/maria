@@ -8,7 +8,7 @@ pub struct DeviceCodeResponse {
 } derive(Debug)
 
 ///|
-impl @json.FromJson for DeviceCodeResponse with from_json(
+impl @json.FromJson for DeviceCodeResponse with fn from_json(
   json : Json,
   path : @json.JsonPath,
 ) -> DeviceCodeResponse raise @json.JsonDecodeError {
@@ -57,7 +57,7 @@ struct AccessTokenResponse {
 } derive(Debug)
 
 ///|
-impl @json.FromJson for AccessTokenResponse with from_json(
+impl @json.FromJson for AccessTokenResponse with fn from_json(
   json : Json,
   path : @json.JsonPath,
 ) -> AccessTokenResponse raise @json.JsonDecodeError {
@@ -82,7 +82,7 @@ pub struct CopilotTokenResponse {
 } derive(Debug)
 
 ///|
-impl @json.FromJson for CopilotTokenResponse with from_json(
+impl @json.FromJson for CopilotTokenResponse with fn from_json(
   json : Json,
   path : @json.JsonPath,
 ) -> CopilotTokenResponse raise @json.JsonDecodeError {

@@ -5,7 +5,7 @@ pub struct CompletionTokensDetails {
 } derive(Debug, ToJson)
 
 ///|
-impl @json.FromJson for CompletionTokensDetails with from_json(
+impl @json.FromJson for CompletionTokensDetails with fn from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> CompletionTokensDetails {

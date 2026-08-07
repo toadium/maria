@@ -32,7 +32,7 @@ pub fn CompletionUsage::new(
 }
 
 ///|
-pub impl @json.FromJson for CompletionUsage with from_json(
+pub impl @json.FromJson for CompletionUsage with fn from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> CompletionUsage {

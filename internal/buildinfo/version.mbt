@@ -7,7 +7,7 @@ pub struct Version {
 } derive(ToJson)
 
 ///|
-pub impl Show for Version with output(self : Version, logger : &Logger) -> Unit {
+pub impl Show for Version with fn output(self : Version, logger : &Logger) -> Unit {
   let string = if self.build is Some(build) {
     "\{self.major}.\{self.minor}.\{self.patch}+\{build.number}.\{build.commit}"
   } else {
@@ -67,7 +67,7 @@ pub fn Version::parse(string : String) -> Version raise {
 }
 
 ///|
-pub impl Compare for Version with compare(self, other) -> Int {
+pub impl Compare for Version with fn compare(self, other) -> Int {
   if self.major != other.major {
     return self.major.compare(other.major)
   }
@@ -86,7 +86,7 @@ pub impl Compare for Version with compare(self, other) -> Int {
 }
 
 ///|
-pub impl Eq for Version with equal(self, other) -> Bool {
+pub impl Eq for Version with fn equal(self, other) -> Bool {
   self.major == other.major &&
   self.minor == other.minor &&
   self.patch == other.patch &&

@@ -21,7 +21,7 @@ struct ListFilesResult {
 } derive(ToJson, FromJson)
 
 ///|
-pub impl Show for ListFilesResult with output(
+pub impl Show for ListFilesResult with fn output(
   result : ListFilesResult,
   logger : &Logger,
 ) -> Unit {
@@ -98,7 +98,7 @@ async fn execute_list_files(
 }
 
 ///|
-impl @tool.ToolOutput for ListFilesResult with to_message(self) {
+impl @tool.ToolOutput for ListFilesResult with fn to_message(self) {
   @ai.tool_message(content=self.to_string(), tool_call_id="")
 }
 

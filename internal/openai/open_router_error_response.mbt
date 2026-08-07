@@ -6,7 +6,7 @@ pub struct OpenRouterErrorResponse {
 } derive(ToJson)
 
 ///|
-pub impl @json.FromJson for OpenRouterErrorResponse with from_json(
+pub impl @json.FromJson for OpenRouterErrorResponse with fn from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> OpenRouterErrorResponse {

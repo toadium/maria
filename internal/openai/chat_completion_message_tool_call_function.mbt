@@ -6,14 +6,14 @@ pub struct ChatCompletionMessageToolCallFunction {
 } derive(Debug)
 
 ///|
-impl ToJson for ChatCompletionMessageToolCallFunction with to_json(
+impl ToJson for ChatCompletionMessageToolCallFunction with fn to_json(
   self : ChatCompletionMessageToolCallFunction,
 ) -> Json {
   { "name": self.name, "arguments": self.arguments.unwrap_or("") }
 }
 
 ///|
-impl @json.FromJson for ChatCompletionMessageToolCallFunction with from_json(
+impl @json.FromJson for ChatCompletionMessageToolCallFunction with fn from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> ChatCompletionMessageToolCallFunction {

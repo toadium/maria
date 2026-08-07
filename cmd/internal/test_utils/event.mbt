@@ -5,7 +5,9 @@ pub(all) enum ServerEvent {
 } derive(ToJson)
 
 ///|
-pub impl @httpx.FromEvent for ServerEvent with from_event(event : @httpx.Event) -> ServerEvent raise {
+pub impl @httpx.FromEvent for ServerEvent with fn from_event(
+  event : @httpx.Event,
+) -> ServerEvent raise {
   let { event, data } = event
   let data = @json.parse(data)
   match event {

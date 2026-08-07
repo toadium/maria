@@ -5,12 +5,12 @@ enum TodoResult {
 } derive(ToJson, FromJson)
 
 ///|
-impl @tool.ToolOutput for TodoResult with to_message(self) {
+impl @tool.ToolOutput for TodoResult with fn to_message(self) {
   @ai.tool_message(content=self.to_string(), tool_call_id="")
 }
 
 ///|
-pub impl Show for TodoResult with output(self : TodoResult, logger : &Logger) -> Unit {
+pub impl Show for TodoResult with fn output(self : TodoResult, logger : &Logger) -> Unit {
   match self {
     Read(result) => result.output(logger)
     Write(result) => result.output(logger)
@@ -24,7 +24,7 @@ priv struct TodoReadResult {
 } derive(ToJson, FromJson)
 
 ///|
-impl Show for TodoReadResult with output(
+impl Show for TodoReadResult with fn output(
   self : TodoReadResult,
   logger : &Logger,
 ) -> Unit {
@@ -83,7 +83,7 @@ priv struct TodoWriteResult {
 } derive(ToJson, FromJson)
 
 ///|
-impl Show for TodoWriteResult with output(
+impl Show for TodoWriteResult with fn output(
   self : TodoWriteResult,
   logger : &Logger,
 ) -> Unit {

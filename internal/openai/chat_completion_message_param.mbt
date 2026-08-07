@@ -8,7 +8,7 @@ pub(all) enum ChatCompletionMessageParam {
 }
 
 ///|
-pub impl ToJson for ChatCompletionMessageParam with to_json(
+pub impl ToJson for ChatCompletionMessageParam with fn to_json(
   self : ChatCompletionMessageParam,
 ) {
   fn content_parts_to_json(
@@ -61,7 +61,7 @@ pub impl ToJson for ChatCompletionMessageParam with to_json(
 }
 
 ///|
-pub impl @json.FromJson for ChatCompletionMessageParam with from_json(
+pub impl @json.FromJson for ChatCompletionMessageParam with fn from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> ChatCompletionMessageParam {

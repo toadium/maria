@@ -1,0 +1,9 @@
+import {
+  "moonbitlang/maria/internal/uuid",
+  "moonbitlang/core/json",
+  "moonbitlang/core/debug",
+}
+
+import {
+  "moonbitlang/maria/internal/rand",
+} for "test"

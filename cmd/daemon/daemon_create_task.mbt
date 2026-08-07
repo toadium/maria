@@ -19,7 +19,7 @@ priv struct CreateTaskRequest {
 }
 
 ///|
-impl @json.FromJson for CreateTaskRequest with from_json(
+impl @json.FromJson for CreateTaskRequest with fn from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> CreateTaskRequest raise @json.JsonDecodeError {
@@ -178,7 +178,7 @@ priv struct CreateTaskResponse {
 }
 
 ///|
-impl ToJson for CreateTaskResponse with to_json(self : CreateTaskResponse) -> Json {
+impl ToJson for CreateTaskResponse with fn to_json(self : CreateTaskResponse) -> Json {
   let object : Map[String, Json] = { "task": self.task.to_json() }
   if self.message is Some(message) {
     object["message"] = message.to_json()

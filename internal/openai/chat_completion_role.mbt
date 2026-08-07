@@ -9,7 +9,7 @@ pub(all) enum ChatCompletionRole {
 } derive(ToJson)
 
 ///|
-impl @json.FromJson for ChatCompletionRole with from_json(
+impl @json.FromJson for ChatCompletionRole with fn from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> ChatCompletionRole {

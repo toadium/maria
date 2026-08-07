@@ -6,7 +6,7 @@ pub struct QueuedMessage {
 }
 
 ///|
-pub impl ToJson for QueuedMessage with to_json(self : QueuedMessage) -> Json {
+pub impl ToJson for QueuedMessage with fn to_json(self : QueuedMessage) -> Json {
   {
     "id": self.id.to_string(),
     "message": self.message.to_openai().to_json(),
@@ -15,7 +15,7 @@ pub impl ToJson for QueuedMessage with to_json(self : QueuedMessage) -> Json {
 }
 
 ///|
-pub impl @json.FromJson for QueuedMessage with from_json(
+pub impl @json.FromJson for QueuedMessage with fn from_json(
   json : Json,
   path : @json.JsonPath,
 ) -> QueuedMessage raise @json.JsonDecodeError {

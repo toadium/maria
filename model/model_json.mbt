@@ -1,5 +1,5 @@
 ///|
-pub impl @json.FromJson for Model with from_json(
+pub impl @json.FromJson for Model with fn from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> Model {
@@ -108,7 +108,7 @@ pub impl @json.FromJson for Model with from_json(
 }
 
 ///|
-pub impl @json.FromJson for Type with from_json(
+pub impl @json.FromJson for Type with fn from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> Type {
@@ -139,7 +139,7 @@ pub impl @json.FromJson for Type with from_json(
 }
 
 ///|
-pub impl ToJson for Type with to_json(self) {
+pub impl ToJson for Type with fn to_json(self) {
   match self {
     SaaS(OpenAI) => "saas/openai"
     SaaS(CodexOAuth) => "saas/codex_oauth"

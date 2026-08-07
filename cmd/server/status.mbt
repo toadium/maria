@@ -5,7 +5,7 @@ pub(all) enum Status {
 }
 
 ///|
-pub impl ToJson for Status with to_json(self) {
+pub impl ToJson for Status with fn to_json(self) {
   match self {
     Idle => "idle"
     Busy => "generating"
@@ -13,7 +13,7 @@ pub impl ToJson for Status with to_json(self) {
 }
 
 ///|
-pub impl @json.FromJson for Status with from_json(json, path) {
+pub impl @json.FromJson for Status with fn from_json(json, path) {
   guard json is String(s) else {
     raise @json.JsonDecodeError(
       (

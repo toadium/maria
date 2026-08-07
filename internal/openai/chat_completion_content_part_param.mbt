@@ -13,7 +13,7 @@ pub fn ChatCompletionContentPartParam::new(
 }
 
 ///|
-pub impl ToJson for ChatCompletionContentPartParam with to_json(
+pub impl ToJson for ChatCompletionContentPartParam with fn to_json(
   self : ChatCompletionContentPartParam,
 ) -> Json {
   match self {
@@ -28,7 +28,7 @@ pub impl ToJson for ChatCompletionContentPartParam with to_json(
 }
 
 ///|
-impl @json.FromJson for ChatCompletionContentPartParam with from_json(
+impl @json.FromJson for ChatCompletionContentPartParam with fn from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> ChatCompletionContentPartParam raise {

@@ -10,7 +10,7 @@ pub(all) enum ChatCompletionReasoningEffort {
 } derive(Debug)
 
 ///|
-impl ToJson for ChatCompletionReasoningEffort with to_json(
+impl ToJson for ChatCompletionReasoningEffort with fn to_json(
   self : ChatCompletionReasoningEffort,
 ) -> Json {
   match self {

@@ -247,12 +247,12 @@ enum SearchFilesResult {
 } derive(ToJson, FromJson)
 
 ///|
-impl @tool.ToolOutput for SearchFilesResult with to_message(self) {
+impl @tool.ToolOutput for SearchFilesResult with fn to_message(self) {
   @ai.tool_message(content=self.to_string(), tool_call_id="")
 }
 
 ///|
-pub impl Show for SearchFilesResult with output(
+pub impl Show for SearchFilesResult with fn output(
   self : SearchFilesResult,
   logger : &Logger,
 ) -> Unit {

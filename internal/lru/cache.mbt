@@ -5,7 +5,7 @@ priv struct Entry[T] {
 }
 
 ///|
-impl[T : ToJson] ToJson for Entry[T] with to_json(self : Entry[T]) -> Json {
+impl[T : ToJson] ToJson for Entry[T] with fn to_json(self : Entry[T]) -> Json {
   self.value.to_json()
 }
 
@@ -67,7 +67,7 @@ fn[K : Eq + Hash, V] Cache::evict(self : Cache[K, V]) -> Unit {
 }
 
 ///|
-pub impl[K : Show, V : ToJson] ToJson for Cache[K, V] with to_json(
+pub impl[K : Show, V : ToJson] ToJson for Cache[K, V] with fn to_json(
   self : Cache[K, V],
 ) -> Json {
   self.cache.to_json()
