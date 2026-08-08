@@ -19,6 +19,7 @@ pub fn LocalSandbox::check_path(Self, String, @perm.Access) -> Bool
 pub fn LocalSandbox::check_permission(Self, @perm.Permission) -> Bool
 pub fn LocalSandbox::execute(Self, String, Array[@perm.Permission], async (Json) -> @tool.ToolResult noraise) -> async (Json) -> @tool.ToolResult noraise
 pub fn LocalSandbox::new() -> Self
+pub impl Sandbox for LocalSandbox
 
 pub struct RestrictedSandbox {
   // private fields
@@ -27,6 +28,7 @@ pub fn RestrictedSandbox::check_path(Self, String, @perm.Access) -> Bool
 pub fn RestrictedSandbox::check_permission(Self, @perm.Permission) -> Bool
 pub fn RestrictedSandbox::execute(Self, String, Array[@perm.Permission], async (Json) -> @tool.ToolResult noraise) -> async (Json) -> @tool.ToolResult noraise
 pub async fn RestrictedSandbox::new(SandboxConfig) -> Self
+pub impl Sandbox for RestrictedSandbox
 
 pub(all) struct SandboxConfig {
   path_whitelist : Array[String]

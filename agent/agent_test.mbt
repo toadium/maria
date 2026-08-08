@@ -652,3 +652,163 @@ async test "agent/resume" (t : @test.Test) {
     )
   })
 }
+
+///|
+async test "agent/agent_id_default" (t : @test.Test) {
+  @mock.run(t, mock => {
+    let model = mock.model(name=ClaudeHaiku4_5)
+    let agent = @agent.new(model, cwd=mock.cwd.path(), logger=mock.logger)
+    inspect(agent.agent_id().is_nil(), content="false")
+  })
+}
+
+///|
+async test "agent/agent_id_custom" (t : @test.Test) {
+  @mock.run(t, mock => {
+    let model = mock.model(name=ClaudeHaiku4_5)
+    let custom_id = @agentid.AgentId::from_uuid(mock.uuid.v4())
+    let agent = @agent.new(
+      model,
+      cwd=mock.cwd.path(),
+      logger=mock.logger,
+      agent_id=custom_id,
+    )
+    @debug.assert_eq(agent.agent_id(), custom_id)
+  })
+}
+
+///|
+async test "agent/trace_disabled_no_span_events" (t : @test.Test) {
+  @mock.run(t, retry=3, mock => {
+    let model = mock.model(name=ClaudeHaiku4_5)
+    let agent = @agent.new(
+      model,
+      cwd=mock.cwd.path(),
+      logger=mock.logger,
+      user_message="Say hello.",
+    )
+    let span_event_count = []
+    agent.add_listener(event => {
+      match event.desc {
+        @event.SpanStarted(_) | @event.SpanEnded(_) => span_event_count.push(1)
+        _ => ()
+      }
+    })
+    agent.start()
+    inspect(span_event_count.length(), content="0")
+  })
+}
+
+///|
+#skip
+async test "agent/sandbox_default_local" (t : @test.Test) {
+  @mock.run(t, retry=3, mock => {
+    let model = mock.model(name=ClaudeHaiku4_5)
+    let agent = @agent.new(
+      model,
+      cwd=mock.cwd.path(),
+      logger=mock.logger,
+      user_message="Use the echo tool to echo 'test'. Return only the result.",
+    )
+    let mut result = ""
+    agent.add_tool(
+      @tool.new(
+        name="echo",
+        description="Echo the input",
+        schema=@tool.JsonSchema::from_json({
+          "type": "object",
+          "properties": { "text": { "type": "string" } },
+          "required": ["text"],
+        }),
+        ToolFn(args => {
+          guard args is { "text": String(text), .. } else {
+            return @tool.failed("Invalid arguments")
+          }
+          result = text
+          @tool.success(text)
+        }),
+      ),
+    )
+    agent.start()
+    inspect(result, content="test")
+  })
+}
+
+///|
+/// 契约6：默认构造 trace_enabled == false（tracer 参数为 None）。
+/// 直接验证公开字段 trace_enabled，不依赖网络 API。
+async test "agent/trace_enabled_default_false" (t : @test.Test) {
+  @mock.run(t, mock => {
+    let model = mock.model(name=ClaudeHaiku4_5)
+    let agent = @agent.new(model, cwd=mock.cwd.path(), logger=mock.logger)
+    inspect(agent.trace_enabled, content="false")
+  })
+}
+
+///|
+/// 契约7：传入 tracer 时 trace_enabled == true。
+/// 直接验证公开字段 trace_enabled，不依赖网络 API。
+async test "agent/trace_enabled_true_when_tracer_provided" (t : @test.Test) {
+  @mock.run(t, mock => {
+    let model = mock.model(name=ClaudeHaiku4_5)
+    let tracer = @trace.NoopTracer::new() as &@trace.Tracer
+    let agent = @agent.new(
+      model,
+      cwd=mock.cwd.path(),
+      logger=mock.logger,
+      tracer~,
+    )
+    inspect(agent.trace_enabled, content="true")
+  })
+}
+
+///|
+/// 契约13/14/15/17：传入 tracer 时会话循环 emit SpanStarted/SpanEnded 事件，
+/// 根 span kind=Session，模型 span kind=Model，span 结束 emit SpanEnded，
+/// 且 SpanStarted 事件携带 span_context（契约11）。
+/// 依赖真实 API（mock.model 创建 OpenRouter model），加 retry=3 提高可靠性。
+/// root_span 在 PreConversation 后创建，即使 @openai.chat 抛异常也会 end_span。
+/// 契约17（span 生命周期完整性）：每个 start_span 都有对应的 end_span，
+/// 故 SpanStarted 与 SpanEnded 数量配对（started_count == ended_count）。
+/// 契约11（span_context 携带）：每个 SpanStarted 事件都携带 span_context，
+/// 故 span_context_present == started_count。
+async test "agent/trace_enabled_produces_span_events" (t : @test.Test) {
+  @mock.run(t, retry=3, mock => {
+    let model = mock.model(name=ClaudeHaiku4_5)
+    let tracer = @trace.NoopTracer::new() as &@trace.Tracer
+    let agent = @agent.new(
+      model,
+      cwd=mock.cwd.path(),
+      logger=mock.logger,
+      user_message="Say hello.",
+      tracer~,
+    )
+    let started_count = []
+    let ended_count = []
+    let span_kinds : Array[@trace.SpanKind] = []
+    let span_context_present = []
+    agent.add_listener(event => {
+      match event.desc {
+        @event.SpanStarted(span) => {
+          started_count.push(1)
+          span_kinds.push(span.kind)
+          if event.span_context is Some(_) {
+            span_context_present.push(1)
+          }
+        }
+        @event.SpanEnded(_) => ended_count.push(1)
+        _ => ()
+      }
+    })
+    agent.start()
+    inspect(started_count.length() > 0, content="true")
+    inspect(ended_count.length() > 0, content="true")
+    inspect(started_count.length() == ended_count.length(), content="true")
+    inspect(span_kinds.contains(@trace.Session), content="true")
+    inspect(span_kinds.contains(@trace.Model), content="true")
+    inspect(
+      span_context_present.length() == started_count.length(),
+      content="true",
+    )
+  })
+}

@@ -24,9 +24,10 @@ fn Agent::emit(
   agent : Agent,
   event : @event.EventDesc,
   id? : @uuid.Uuid,
+  span_context? : @trace.SpanContext? = None,
 ) -> Unit {
   let id = id.unwrap_or_else(() => agent.uuid.v4())
-  let event = @event.Event::new(id~, event)
+  let event = @event.Event::new(id~, event, span_context~)
   agent.event_target.put(event)
   agent.history.add_event(event)
 }

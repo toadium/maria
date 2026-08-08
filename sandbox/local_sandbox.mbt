@@ -47,3 +47,31 @@ pub fn LocalSandbox::check_path(
   ignore(access)
   true
 }
+
+///|
+/// LocalSandbox 实现 Sandbox trait（R3 遗留缺陷修复，委托已有方法）。
+pub impl Sandbox for LocalSandbox with fn execute(
+  self : LocalSandbox,
+  name : String,
+  permissions : Array[@perm.Permission],
+  f : async (Json) -> @tool.ToolResult noraise,
+) -> async (Json) -> @tool.ToolResult noraise {
+  LocalSandbox::execute(self, name, permissions, f)
+}
+
+///|
+pub impl Sandbox for LocalSandbox with fn check_permission(
+  self : LocalSandbox,
+  perm : @perm.Permission,
+) -> Bool {
+  LocalSandbox::check_permission(self, perm)
+}
+
+///|
+pub impl Sandbox for LocalSandbox with fn check_path(
+  self : LocalSandbox,
+  path : String,
+  access : @perm.Access,
+) -> Bool {
+  LocalSandbox::check_path(self, path, access)
+}

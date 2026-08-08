@@ -102,7 +102,13 @@ async fn Agent::execute_tool(
         }
       }
   }
-  let tool_result = tool.call(arguments)
+  let sandboxed_fn = @sandbox.Sandbox::execute(
+    agent.sandbox,
+    tool.desc().name,
+    tool.desc().permissions,
+    args => tool.call(args),
+  )
+  let tool_result = sandboxed_fn(arguments)
   let (result, rendered) = match tool_result {
     Success(output) => {
       let content = output.to_message().content()

@@ -60,6 +60,11 @@ pub(all) struct Agent {
   mut web_search : Bool
   /// Queue for receiving external events from the environment.
   priv external_events : @event.ExternalEventQueue
+  agent_id : @agentid.AgentId
+  priv tracer : &@trace.Tracer
+  priv registry : @component.ComponentRegistry
+  priv sandbox : &@sandbox.Sandbox
+  trace_enabled : Bool
 }
 
 ///|
@@ -231,98 +236,178 @@ pub async fn Agent::start(agent : Agent) -> Unit {
     defer session.stop()
     // Signal the start of conversation
     agent.emit(PreConversation)
+    let root_span : @trace.Span? = if agent.trace_enabled {
+      let span = @trace.Tracer::start_span(
+        agent.tracer,
+        name="session",
+        kind=@trace.Session,
+        parent=None,
+      )
+      agent.emit(SpanStarted(span), span_context=Some(span.context))
+      Some(span)
+    } else {
+      None
+    }
     // We need to first poll external events before starting the loop,
     // otherwise the loop will exit immediately.
-    while true {
-      // Poll for external events at the start of each iteration
-      // This handles user cancellation, immediate messages, and diagnostics
-      guard agent.poll_external_events() else { break }
-      let mut web_search = agent.web_search
-      // Test if the agent.input_queue is empty, if so, pop from pending_queue
-      if agent.input_queue.is_empty() {
-        if agent.pending_queue.pop_front() is Some(msg) {
-          // For sure to happen
-          agent.input_queue.push(msg.message)
-          web_search = msg.web_search
-          agent.emit(MessageUnqueued(id=msg.id))
-          agent.emit(UserMessage(msg.message.content()))
+    try {
+      while true {
+        // Poll for external events at the start of each iteration
+        // This handles user cancellation, immediate messages, and diagnostics
+        guard agent.poll_external_events() else { break }
+        let mut web_search = agent.web_search
+        // Test if the agent.input_queue is empty, if so, pop from pending_queue
+        if agent.input_queue.is_empty() {
+          if agent.pending_queue.pop_front() is Some(msg) {
+            // For sure to happen
+            agent.input_queue.push(msg.message)
+            web_search = msg.web_search
+            agent.emit(MessageUnqueued(id=msg.id))
+            agent.emit(UserMessage(msg.message.content()))
+          }
         }
-      }
-      if agent.input_queue.is_empty() {
-        // No messages to send, end the conversation
-        break
-      }
-      let tools = agent.tools_desc()
-      // Retrieve and clear the message queue
-      // staged contains messages that need to be sent in this call
-      // Build the complete message array for the API call
-      // Count tokens, prune if needed, and apply caching
-      let (cache_messages, estimated_tokens) = agent.prepare_messages_for_request(
-        tools~,
-      )
+        if agent.input_queue.is_empty() {
+          // No messages to send, end the conversation
+          break
+        }
+        let tools = agent.tools_desc()
+        // Retrieve and clear the message queue
+        // staged contains messages that need to be sent in this call
+        // Build the complete message array for the API call
+        // Count tokens, prune if needed, and apply caching
+        let (cache_messages, estimated_tokens) = agent.prepare_messages_for_request(
+          tools~,
+        )
 
-      // Enable web search plugin if configured
-      let extra_body : Map[String, Json] = Map([])
-      if web_search {
-        // We only support web search plugin for OpenRouter models for now.
-        //
-        // FIXME: We should encode how to enable web search plugin in model
-        // configuration.
-        if agent.model.base_url.contains("openrouter.ai/api/v1") {
-          extra_body["plugins"] = [{ "id": "web" }]
+        // Enable web search plugin if configured
+        let extra_body : Map[String, Json] = Map([])
+        if web_search {
+          // We only support web search plugin for OpenRouter models for now.
+          //
+          // FIXME: We should encode how to enable web search plugin in model
+          // configuration.
+          if agent.model.base_url.contains("openrouter.ai/api/v1") {
+            extra_body["plugins"] = [{ "id": "web" }]
+          } else {
+            agent.logger.warn(
+              "Web search plugin is only supported for OpenRouter models.",
+            )
+          }
+        }
+
+        // Make the API request to get the model's response
+        let model_span : @trace.Span? = if agent.trace_enabled {
+          let span = @trace.Tracer::start_span(
+            agent.tracer,
+            name="model_call",
+            kind=@trace.Model,
+            parent=root_span.map(s => s.context),
+          )
+          agent.emit(SpanStarted(span), span_context=Some(span.context))
+          Some(span)
         } else {
-          agent.logger.warn(
-            "Web search plugin is only supported for OpenRouter models.",
+          None
+        }
+        let (message, usage) = try {
+          let response = @openai.chat(
+            model=agent.model,
+            logger=agent.logger,
+            @openai.chat_completion(
+              messages=cache_messages,
+              model=agent.model.model_name,
+              tools=tools.map(x => x.to_openai()),
+            ),
+            extra_body~,
+          )
+          // Extract the message from the response, raise error if no choices returned
+          guard response is { choices: [{ message, .. }, ..], usage, .. } else {
+            raise EmptyChoices
+          }
+          if model_span is Some(span) {
+            @trace.Tracer::end_span(agent.tracer, span, status=@trace.Ok)
+            agent.emit(SpanEnded(span), span_context=Some(span.context))
+          }
+          (message, usage)
+        } catch {
+          error => {
+            if model_span is Some(span) {
+              @trace.Tracer::end_span(agent.tracer, span, status=@trace.Ok)
+              agent.emit(SpanEnded(span), span_context=Some(span.context))
+            }
+            raise error
+          }
+        }
+
+        // Emit event with API usage statistics and the returned message
+        agent.emit(
+          AssistantMessage(
+            usage=usage.map(u => @ai.Usage::from_openai(u)),
+            tool_calls=message.tool_calls.map(tc => {
+              @ai.ToolCall::from_openai_tool_call(tc)
+            }),
+            message.content.unwrap_or(""),
+          ),
+        )
+
+        // Calibrate token counter based on actual usage from model response
+        if usage is Some(u) {
+          agent.token_counter.calibrate(
+            model_name=agent.model.model_name,
+            estimated_tokens~,
+            actual_tokens=u.prompt_tokens,
           )
         }
-      }
 
-      // Make the API request to get the model's response
-      let response = @openai.chat(
-        model=agent.model,
-        logger=agent.logger,
-        @openai.chat_completion(
-          messages=cache_messages,
-          model=agent.model.model_name,
-          tools=tools.map(x => x.to_openai()),
-        ),
-        extra_body~,
-      )
-      // Extract the message from the response, raise error if no choices returned
-      guard response is { choices: [{ message, .. }, ..], usage, .. } else {
-        raise EmptyChoices
+        // Add all staged messages to permanent conversation history
+        agent.input_queue = []
+        // Persist the updated conversation history to disk
+        agent.session_manager.save(agent.history)
+        // Execute each tool call and queue the results for the next iteration
+        for call in message.tool_calls {
+          let tool_span : @trace.Span? = if agent.trace_enabled {
+            let span = @trace.Tracer::start_span(
+              agent.tracer,
+              name=call.function.name,
+              kind=@trace.Tool,
+              parent=root_span.map(s => s.context),
+            )
+            agent.emit(SpanStarted(span), span_context=Some(span.context))
+            Some(span)
+          } else {
+            None
+          }
+          try {
+            let result = agent.execute_tool(
+              @ai.ToolCall::from_openai_tool_call(call),
+            )
+            if tool_span is Some(span) {
+              @trace.Tracer::end_span(agent.tracer, span, status=@trace.Ok)
+              agent.emit(SpanEnded(span), span_context=Some(span.context))
+            }
+            agent.input_queue.push(result)
+          } catch {
+            error => {
+              if tool_span is Some(span) {
+                @trace.Tracer::end_span(agent.tracer, span, status=@trace.Ok)
+                agent.emit(SpanEnded(span), span_context=Some(span.context))
+              }
+              raise error
+            }
+          }
+        }
       }
-
-      // Emit event with API usage statistics and the returned message
-      agent.emit(
-        AssistantMessage(
-          usage=usage.map(u => @ai.Usage::from_openai(u)),
-          tool_calls=message.tool_calls.map(tc => {
-            @ai.ToolCall::from_openai_tool_call(tc)
-          }),
-          message.content.unwrap_or(""),
-        ),
-      )
-
-      // Calibrate token counter based on actual usage from model response
-      if usage is Some(u) {
-        agent.token_counter.calibrate(
-          model_name=agent.model.model_name,
-          estimated_tokens~,
-          actual_tokens=u.prompt_tokens,
-        )
+    } catch {
+      error => {
+        if root_span is Some(span) {
+          @trace.Tracer::end_span(agent.tracer, span, status=@trace.Ok)
+          agent.emit(SpanEnded(span), span_context=Some(span.context))
+        }
+        raise error
       }
-
-      // Add all staged messages to permanent conversation history
-      agent.input_queue = []
-      // Persist the updated conversation history to disk
-      agent.session_manager.save(agent.history)
-      // Execute each tool call and queue the results for the next iteration
-      for call in message.tool_calls {
-        agent.input_queue.push(
-          agent.execute_tool(@ai.ToolCall::from_openai_tool_call(call)),
-        )
-      }
+    }
+    if root_span is Some(span) {
+      @trace.Tracer::end_span(agent.tracer, span, status=@trace.Ok)
+      agent.emit(SpanEnded(span), span_context=Some(span.context))
     }
     // Signal the end of conversation
     agent.emit(PostConversation)
@@ -375,6 +460,10 @@ pub async fn new(
   web_search? : Bool = false,
   external_events? : @event.ExternalEventQueue,
   history? : @conversation.Conversation,
+  agent_id? : @agentid.AgentId,
+  tracer? : &@trace.Tracer,
+  registry? : @component.ComponentRegistry,
+  sandbox? : &@sandbox.Sandbox,
 ) -> Agent {
   let home = match home {
     Some(home) => home.to_owned()
@@ -384,6 +473,23 @@ pub async fn new(
   let uuid = match uuid {
     Some(uuid) => uuid
     None => @uuid.generator(@rand.chacha8())
+  }
+  let agent_id = match agent_id {
+    Some(id) => id
+    None => @agentid.AgentId::from_uuid(uuid.v4())
+  }
+  let trace_enabled = tracer is Some(_)
+  let tracer = match tracer {
+    Some(t) => t
+    None => @trace.NoopTracer::new() as &@trace.Tracer
+  }
+  let registry = match registry {
+    Some(r) => r
+    None => @component.ComponentRegistry::new()
+  }
+  let sandbox = match sandbox {
+    Some(s) => s
+    None => @sandbox.LocalSandbox::new() as &@sandbox.Sandbox
   }
   let session_manager = @conversation.Manager::new(uuid~, home~)
   let rules = @rules.Loader::new(cwd.to_owned(), logger~)
@@ -433,6 +539,11 @@ pub async fn new(
     skills,
     web_search,
     external_events,
+    agent_id,
+    tracer,
+    registry,
+    sandbox,
+    trace_enabled,
   }
   rules.load()
   skills.load()
@@ -477,6 +588,10 @@ pub async fn load(
   user_message? : String,
   web_search? : Bool = false,
   external_events? : @event.ExternalEventQueue,
+  agent_id? : @agentid.AgentId,
+  tracer? : &@trace.Tracer,
+  registry? : @component.ComponentRegistry,
+  sandbox? : &@sandbox.Sandbox,
 ) -> Agent {
   new(
     model,
@@ -488,6 +603,10 @@ pub async fn load(
     web_search~,
     history~,
     external_events?,
+    agent_id?,
+    tracer?,
+    registry?,
+    sandbox?,
   )
 }
 
@@ -512,4 +631,13 @@ pub fn Agent::clear_inputs(self : Agent) -> Array[QueuedMessage] {
 /// Returns the UUID that uniquely identifies this agent instance.
 pub fn Agent::id(agent : Agent) -> @uuid.Uuid {
   agent.history.id()
+}
+
+///|
+/// Gets the AgentId of the agent instance.
+///
+/// This returns the unique identifier of the agent instance itself,
+/// distinct from `Agent::id` which returns the conversation session ID.
+pub fn Agent::agent_id(self : Agent) -> @agentid.AgentId {
+  self.agent_id
 }

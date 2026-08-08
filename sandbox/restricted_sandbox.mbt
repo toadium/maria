@@ -90,3 +90,31 @@ pub fn RestrictedSandbox::check_path(
   // 均不匹配返回 false（默认拒绝）
   false
 }
+
+///|
+/// RestrictedSandbox 实现 Sandbox trait（R3 遗留缺陷修复，委托已有方法）。
+pub impl Sandbox for RestrictedSandbox with fn execute(
+  self : RestrictedSandbox,
+  name : String,
+  permissions : Array[@perm.Permission],
+  f : async (Json) -> @tool.ToolResult noraise,
+) -> async (Json) -> @tool.ToolResult noraise {
+  RestrictedSandbox::execute(self, name, permissions, f)
+}
+
+///|
+pub impl Sandbox for RestrictedSandbox with fn check_permission(
+  self : RestrictedSandbox,
+  perm : @perm.Permission,
+) -> Bool {
+  RestrictedSandbox::check_permission(self, perm)
+}
+
+///|
+pub impl Sandbox for RestrictedSandbox with fn check_path(
+  self : RestrictedSandbox,
+  path : String,
+  access : @perm.Access,
+) -> Bool {
+  RestrictedSandbox::check_path(self, path, access)
+}
