@@ -70,7 +70,12 @@ pub fn ExternalEventQueue::send(
   desc : EventDesc,
 ) -> Unit {
   let created = @clock.epoch.now()
-  let _ = self.queue.try_put({ id: self.uuid.v4(), created, desc }) catch {
+  let _ = self.queue.try_put({
+    id: self.uuid.v4(),
+    created,
+    desc,
+    span_context: None,
+  }) catch {
     _ => false
   }
 }

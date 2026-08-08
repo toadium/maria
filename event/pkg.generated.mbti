@@ -8,6 +8,7 @@ import {
   "moonbitlang/maria/clock",
   "moonbitlang/maria/internal/uuid",
   "moonbitlang/maria/tool",
+  "moonbitlang/maria/trace",
 }
 
 // Values
@@ -19,12 +20,13 @@ pub struct Event {
   id : @uuid.Uuid
   created : @clock.Timestamp
   desc : EventDesc
+  span_context : @trace.SpanContext?
 } derive(Eq, @debug.Debug)
 pub fn Event::is_cancellation(Self) -> Bool
 pub fn Event::is_incoming(Self) -> Bool
 pub fn Event::is_starting(Self) -> Bool
 pub fn Event::is_stopping(Self) -> Bool
-pub fn Event::new(id~ : @uuid.Uuid, created? : @clock.Timestamp, EventDesc) -> Self
+pub fn Event::new(id~ : @uuid.Uuid, created? : @clock.Timestamp, EventDesc, span_context? : @trace.SpanContext?) -> Self
 pub impl ToJson for Event
 pub impl @json.FromJson for Event
 
@@ -45,6 +47,8 @@ pub(all) enum EventDesc {
   Cancelled
   Failed(Json)
   Pruned(id~ : @uuid.Uuid)
+  SpanStarted(@trace.Span)
+  SpanEnded(@trace.Span)
 } derive(Eq, @debug.Debug)
 pub impl ToJson for EventDesc
 pub impl @json.FromJson for EventDesc

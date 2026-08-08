@@ -31,6 +31,7 @@ pub struct Event {
   id : @uuid.Uuid
   created : @clock.Timestamp
   desc : EventDesc
+  span_context : @trace.SpanContext?
 } derive(Eq, Debug)
 
 ///|
@@ -49,8 +50,9 @@ pub fn Event::new(
   id~ : @uuid.Uuid,
   created? : @clock.Timestamp = @clock.epoch.now(),
   desc : EventDesc,
+  span_context? : @trace.SpanContext? = None,
 ) -> Event {
-  Event::{ id, created, desc }
+  Event::{ id, created, desc, span_context }
 }
 
 ///|
@@ -114,6 +116,10 @@ pub(all) enum EventDesc {
   /// Event triggered when a PostToolCall event is pruned from context.
   /// The `id` field references the pruned PostToolCall event's id.
   Pruned(id~ : @uuid.Uuid)
+  /// Event triggered when a trace span starts.
+  SpanStarted(@trace.Span)
+  /// Event triggered when a trace span ends.
+  SpanEnded(@trace.Span)
 } derive(Eq, Debug)
 
 ///|
@@ -211,6 +217,8 @@ pub impl ToJson for EventDesc with fn to_json(self : EventDesc) -> Json {
     UserMessage(content) => { "msg": "UserMessage", "content": content }
     Failed(error) => { "msg": "Failed", "error": error }
     Pruned(id~) => { "msg": "Pruned", "id": id.to_json() }
+    SpanStarted(span) => { "msg": "SpanStarted", "span": span.to_json() }
+    SpanEnded(span) => { "msg": "SpanEnded", "span": span.to_json() }
   }
 }
 
@@ -357,6 +365,14 @@ pub impl @json.FromJson for EventDesc with fn from_json(
       let id : @uuid.Uuid = object.required("id", path=json_path)
       Pruned(id~)
     }
+    "SpanStarted" => {
+      let span : @trace.Span = object.required("span", path=json_path)
+      SpanStarted(span)
+    }
+    "SpanEnded" => {
+      let span : @trace.Span = object.required("span", path=json_path)
+      SpanEnded(span)
+    }
     _ =>
       raise @json.JsonDecodeError(
         (json_path, "Unknown 'msg' value in EventDesc: \{msg}"),
@@ -370,7 +386,15 @@ pub impl @json.FromJson for EventDesc with fn from_json(
 /// Note: this implementation behaves identically to the derived version.
 /// We manually implement it here to ensure the stability of the JSON format.
 pub impl ToJson for Event with fn to_json(self : Event) -> Json {
-  { "id": self.id.to_json(), "created": self.created, "desc": self.desc }
+  let json : Map[String, Json] = {
+    "id": self.id.to_json(),
+    "created": self.created,
+    "desc": self.desc,
+  }
+  if self.span_context is Some(ctx) {
+    json["span_context"] = ctx.to_json()
+  }
+  Json::object(json)
 }
 
 ///|
@@ -388,7 +412,11 @@ pub impl @json.FromJson for Event with fn from_json(
     .optional("created", path=json_path)
     .unwrap_or_else(() => @clock.Timestamp::from_ms(0))
   let desc : EventDesc = object.required("desc", path=json_path)
-  { id, created, desc }
+  let span_context : @trace.SpanContext? = object.optional(
+    "span_context",
+    path=json_path,
+  )
+  { id, created, desc, span_context }
 }
 
 ///|

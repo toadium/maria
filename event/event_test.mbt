@@ -642,6 +642,20 @@ test "ExternalEvent::Roundtrip/UserMessage" {
 ///|
 test "Event::Roundtrip" {
   let uuid = @uuid.generator(@rand.chacha8())
+  let span_context : @trace.SpanContext = @trace.SpanContext::{
+    trace_id: @trace.TraceId::nil(),
+    span_id: @trace.SpanId::nil(),
+    parent_span_id: None,
+  }
+  let span : @trace.Span = @trace.Span::{
+    context: span_context,
+    kind: @trace.Session,
+    name: "test_span",
+    status: @trace.Unset,
+    start_time: @clock.Timestamp::from_ms(0),
+    end_time: None,
+    attributes: Map([]),
+  }
   let events : Array[EventDesc] = [
     PreConversation,
     PostConversation,
@@ -683,10 +697,268 @@ test "Event::Roundtrip" {
     Cancelled,
     UserMessage("Stop the current task"),
     Failed(Failure::Failure("An error occurred").to_json()),
+    SpanStarted(span),
+    SpanEnded(span),
   ]
   for event in events {
     let event = @event.Event::new(id=uuid.v4(), event)
     let roundtripped : @event.Event = @json.from_json(event.to_json())
     @debug.assert_eq(roundtripped, event)
   }
+}
+
+///|
+test "Event::ToJson/span_context_none" {
+  let event = @event.Event::new(
+    id=@uuid.nil,
+    created=@clock.Timestamp::from_ms(0),
+    PreConversation,
+  )
+  json_inspect(event.to_json(), content={
+    "id": "00000000-0000-0000-0000-000000000000",
+    "created": 0,
+    "desc": { "msg": "PreConversation" },
+  })
+}
+
+///|
+test "Event::ToJson/span_context_some" {
+  let span_context : @trace.SpanContext = @trace.SpanContext::{
+    trace_id: @trace.TraceId::nil(),
+    span_id: @trace.SpanId::nil(),
+    parent_span_id: None,
+  }
+  let event = @event.Event::new(
+    id=@uuid.nil,
+    created=@clock.Timestamp::from_ms(0),
+    PreConversation,
+    span_context=Some(span_context),
+  )
+  json_inspect(event.to_json(), content={
+    "id": "00000000-0000-0000-0000-000000000000",
+    "created": 0,
+    "desc": { "msg": "PreConversation" },
+    "span_context": {
+      "trace_id": "00000000000000000000000000000000",
+      "span_id": "0000000000000000",
+      "parent_span_id": null,
+    },
+  })
+}
+
+///|
+test "Event::FromJson/missing_span_context" {
+  let json : Json = {
+    "id": "00000000-0000-0000-0000-000000000000",
+    "created": 0,
+    "desc": { "msg": "PreConversation" },
+  }
+  let event : @event.Event = @json.from_json(json)
+  @debug.assert_eq(event.span_context, None)
+}
+
+///|
+test "Event::FromJson/null_span_context" {
+  let json : Json = {
+    "id": "00000000-0000-0000-0000-000000000000",
+    "created": 0,
+    "desc": { "msg": "PreConversation" },
+    "span_context": Json::null(),
+  }
+  let event : @event.Event = @json.from_json(json)
+  @debug.assert_eq(event.span_context, None)
+}
+
+///|
+test "Event::Roundtrip/with_span_context" {
+  let span_context : @trace.SpanContext = @trace.SpanContext::{
+    trace_id: @trace.TraceId::nil(),
+    span_id: @trace.SpanId::nil(),
+    parent_span_id: None,
+  }
+  let event = @event.Event::new(
+    id=@uuid.nil,
+    created=@clock.Timestamp::from_ms(0),
+    PreConversation,
+    span_context=Some(span_context),
+  )
+  let roundtripped : @event.Event = @json.from_json(event.to_json())
+  @debug.assert_eq(roundtripped, event)
+}
+
+///|
+test "EventDesc::ToJson/SpanStarted" {
+  let span_context : @trace.SpanContext = @trace.SpanContext::{
+    trace_id: @trace.TraceId::nil(),
+    span_id: @trace.SpanId::nil(),
+    parent_span_id: None,
+  }
+  let span : @trace.Span = @trace.Span::{
+    context: span_context,
+    kind: @trace.Session,
+    name: "test_span",
+    status: @trace.Unset,
+    start_time: @clock.Timestamp::from_ms(0),
+    end_time: None,
+    attributes: Map([]),
+  }
+  let event : @event.EventDesc = SpanStarted(span)
+  json_inspect(event.to_json(), content={
+    "msg": "SpanStarted",
+    "span": {
+      "context": {
+        "trace_id": "00000000000000000000000000000000",
+        "span_id": "0000000000000000",
+        "parent_span_id": null,
+      },
+      "kind": "Session",
+      "name": "test_span",
+      "status": "Unset",
+      "start_time": 0,
+      "end_time": null,
+      "attributes": Json::empty_object(),
+    },
+  })
+}
+
+///|
+test "EventDesc::ToJson/SpanEnded" {
+  let span_context : @trace.SpanContext = @trace.SpanContext::{
+    trace_id: @trace.TraceId::nil(),
+    span_id: @trace.SpanId::nil(),
+    parent_span_id: None,
+  }
+  let span : @trace.Span = @trace.Span::{
+    context: span_context,
+    kind: @trace.Session,
+    name: "test_span",
+    status: @trace.Unset,
+    start_time: @clock.Timestamp::from_ms(0),
+    end_time: None,
+    attributes: Map([]),
+  }
+  let event : @event.EventDesc = SpanEnded(span)
+  json_inspect(event.to_json(), content={
+    "msg": "SpanEnded",
+    "span": {
+      "context": {
+        "trace_id": "00000000000000000000000000000000",
+        "span_id": "0000000000000000",
+        "parent_span_id": null,
+      },
+      "kind": "Session",
+      "name": "test_span",
+      "status": "Unset",
+      "start_time": 0,
+      "end_time": null,
+      "attributes": Json::empty_object(),
+    },
+  })
+}
+
+///|
+test "EventDesc::Roundtrip/SpanStarted" {
+  let span_context : @trace.SpanContext = @trace.SpanContext::{
+    trace_id: @trace.TraceId::nil(),
+    span_id: @trace.SpanId::nil(),
+    parent_span_id: None,
+  }
+  let span : @trace.Span = @trace.Span::{
+    context: span_context,
+    kind: @trace.Session,
+    name: "test_span",
+    status: @trace.Unset,
+    start_time: @clock.Timestamp::from_ms(0),
+    end_time: None,
+    attributes: Map([]),
+  }
+  let event : @event.EventDesc = SpanStarted(span)
+  let roundtripped : @event.EventDesc = @json.from_json(event.to_json())
+  @debug.assert_eq(roundtripped, event)
+}
+
+///|
+test "EventDesc::Roundtrip/SpanEnded" {
+  let span_context : @trace.SpanContext = @trace.SpanContext::{
+    trace_id: @trace.TraceId::nil(),
+    span_id: @trace.SpanId::nil(),
+    parent_span_id: None,
+  }
+  let span : @trace.Span = @trace.Span::{
+    context: span_context,
+    kind: @trace.Session,
+    name: "test_span",
+    status: @trace.Unset,
+    start_time: @clock.Timestamp::from_ms(0),
+    end_time: None,
+    attributes: Map([]),
+  }
+  let event : @event.EventDesc = SpanEnded(span)
+  let roundtripped : @event.EventDesc = @json.from_json(event.to_json())
+  @debug.assert_eq(roundtripped, event)
+}
+
+///|
+test "Event::new/default_span_context" {
+  let event = @event.Event::new(id=@uuid.nil, PreConversation)
+  @debug.assert_eq(event.span_context, None)
+}
+
+///|
+test "Event::new/explicit_span_context" {
+  let span_context : @trace.SpanContext = @trace.SpanContext::{
+    trace_id: @trace.TraceId::nil(),
+    span_id: @trace.SpanId::nil(),
+    parent_span_id: None,
+  }
+  let event = @event.Event::new(
+    id=@uuid.nil,
+    PreConversation,
+    span_context=Some(span_context),
+  )
+  @debug.assert_eq(event.span_context, Some(span_context))
+}
+
+///|
+test "Event::predicates/SpanStarted" {
+  let span : @trace.Span = @trace.Span::{
+    context: @trace.SpanContext::{
+      trace_id: @trace.TraceId::nil(),
+      span_id: @trace.SpanId::nil(),
+      parent_span_id: None,
+    },
+    kind: @trace.Session,
+    name: "test_span",
+    status: @trace.Unset,
+    start_time: @clock.Timestamp::from_ms(0),
+    end_time: None,
+    attributes: Map([]),
+  }
+  let event = @event.Event::new(id=@uuid.nil, SpanStarted(span))
+  inspect(event.is_incoming(), content="false")
+  inspect(event.is_stopping(), content="false")
+  inspect(event.is_starting(), content="false")
+  inspect(event.is_cancellation(), content="false")
+}
+
+///|
+test "Event::predicates/SpanEnded" {
+  let span : @trace.Span = @trace.Span::{
+    context: @trace.SpanContext::{
+      trace_id: @trace.TraceId::nil(),
+      span_id: @trace.SpanId::nil(),
+      parent_span_id: None,
+    },
+    kind: @trace.Session,
+    name: "test_span",
+    status: @trace.Unset,
+    start_time: @clock.Timestamp::from_ms(0),
+    end_time: None,
+    attributes: Map([]),
+  }
+  let event = @event.Event::new(id=@uuid.nil, SpanEnded(span))
+  inspect(event.is_incoming(), content="false")
+  inspect(event.is_stopping(), content="false")
+  inspect(event.is_starting(), content="false")
+  inspect(event.is_cancellation(), content="false")
 }
