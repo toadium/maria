@@ -1,0 +1,10 @@
+import {
+  "moonbitlang/maria/internal/fsx",
+  "moonbitlang/maria/tool",
+  "moonbitlang/maria/internal/perm",
+  "moonbitlang/core/json",
+}
+
+import {
+  "moonbitlang/async",
+} for "test"

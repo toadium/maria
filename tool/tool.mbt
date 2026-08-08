@@ -3,6 +3,7 @@ pub struct ToolDesc {
   description : String
   name : String
   schema : JsonSchema
+  permissions : Array[@perm.Permission]
 } derive(ToJson, Eq, Debug)
 
 ///|
@@ -21,8 +22,9 @@ pub fn tool_desc(
   description~ : String,
   name~ : String,
   schema~ : JsonSchema,
+  permissions? : Array[@perm.Permission] = [],
 ) -> ToolDesc {
-  ToolDesc::{ description, name, schema }
+  ToolDesc::{ description, name, schema, permissions }
 }
 
 ///|
@@ -62,6 +64,26 @@ pub fn ToolResult::success(output : &ToolOutput) -> ToolResult {
 }
 
 ///|
+///
+/// - `description`: Tool description that can be read by the LLM.
+/// - `name`: Tool name used by the LLM to call the tool.
+/// - `schema`: JSON schema to validate LLM-generated output and provide type information to the LLM.
+///             `schema` should be an *object type*. Related issue: [#258](https://github.com/moonbitlang/maria/issues/258)
+/// - `permissions`: Permissions required by the tool. Defaults to empty array.
+/// - `f`: Function whose `input` must conform to the `schema` defined above.
+///
+#as_free_fn
+pub fn Tool::new(
+  description~ : String,
+  name~ : String,
+  schema~ : JsonSchema,
+  permissions? : Array[@perm.Permission] = [],
+  f : ToolFn,
+) -> Tool {
+  Tool::{ desc: { description, name, schema, permissions }, f }
+}
+
+///|
 pub impl ToJson for ToolResult with fn to_json(self) {
   match self {
     Success(output) => ["Success", output.to_message().content().to_json()]
@@ -87,24 +109,6 @@ priv suberror ToolFailure {
 #as_free_fn
 pub fn ToolResult::failed(message : String) -> ToolResult {
   Failed(ToolFailure(message))
-}
-
-///|
-///
-/// - `description`: Tool description that can be read by the LLM.
-/// - `name`: Tool name used by the LLM to call the tool.
-/// - `schema`: JSON schema to validate LLM-generated output and provide type information to the LLM.
-///             `schema` should be an *object type*. Related issue: [#258](https://github.com/moonbitlang/maria/issues/258)
-/// - `f`: Function whose `input` must conform to the `schema` defined above.
-///
-#as_free_fn
-pub fn Tool::new(
-  description~ : String,
-  name~ : String,
-  schema~ : JsonSchema,
-  f : ToolFn,
-) -> Tool {
-  Tool::{ desc: { description, name, schema }, f }
 }
 
 ///|

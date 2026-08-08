@@ -1,5 +1,6 @@
 import {
   "moonbitlang/maria/internal/openai",
   "moonbitlang/maria/ai",
+  "moonbitlang/maria/internal/perm",
   "moonbitlang/core/json",
 }

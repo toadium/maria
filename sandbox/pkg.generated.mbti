@@ -1,0 +1,46 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/sandbox"
+
+import {
+  "moonbitlang/core/debug",
+  "moonbitlang/core/json",
+  "moonbitlang/maria/internal/perm",
+  "moonbitlang/maria/tool",
+}
+
+// Values
+
+// Errors
+
+// Types and methods
+pub struct LocalSandbox {
+}
+pub fn LocalSandbox::check_path(Self, String, @perm.Access) -> Bool
+pub fn LocalSandbox::check_permission(Self, @perm.Permission) -> Bool
+pub fn LocalSandbox::execute(Self, String, Array[@perm.Permission], async (Json) -> @tool.ToolResult noraise) -> async (Json) -> @tool.ToolResult noraise
+pub fn LocalSandbox::new() -> Self
+
+pub struct RestrictedSandbox {
+  // private fields
+}
+pub fn RestrictedSandbox::check_path(Self, String, @perm.Access) -> Bool
+pub fn RestrictedSandbox::check_permission(Self, @perm.Permission) -> Bool
+pub fn RestrictedSandbox::execute(Self, String, Array[@perm.Permission], async (Json) -> @tool.ToolResult noraise) -> async (Json) -> @tool.ToolResult noraise
+pub async fn RestrictedSandbox::new(SandboxConfig) -> Self
+
+pub(all) struct SandboxConfig {
+  path_whitelist : Array[String]
+  path_blacklist : Array[String]
+  command_enabled : Bool
+  cwd : String
+} derive(Eq, ToJson, @debug.Debug, @json.FromJson)
+
+// Type aliases
+
+// Traits
+pub(open) trait Sandbox {
+  fn execute(Self, String, Array[@perm.Permission], async (Json) -> @tool.ToolResult noraise) -> async (Json) -> @tool.ToolResult noraise
+  fn check_permission(Self, @perm.Permission) -> Bool
+  fn check_path(Self, String, @perm.Access) -> Bool
+}
+

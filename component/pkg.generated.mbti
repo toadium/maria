@@ -1,0 +1,64 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/component"
+
+import {
+  "moonbitlang/core/debug",
+  "moonbitlang/core/json",
+  "moonbitlang/core/set",
+  "moonbitlang/maria/ai",
+  "moonbitlang/maria/tool",
+}
+
+// Values
+pub fn as_component(@tool.Tool) -> @tool.Tool
+
+// Errors
+
+// Types and methods
+type ComponentEntry
+
+pub struct ComponentRegistry {
+  // private fields
+}
+pub fn ComponentRegistry::get(Self, String) -> &Component?
+pub fn ComponentRegistry::is_enabled(Self, String) -> Bool
+pub fn ComponentRegistry::list(Self) -> Array[String]
+pub fn ComponentRegistry::list_by_type(Self, ctype~ : ComponentType) -> Array[String]
+pub fn ComponentRegistry::new() -> Self
+pub fn ComponentRegistry::register(Self, component~ : &Component) -> Unit
+pub fn ComponentRegistry::set_enabled(Self, String, enabled~ : Bool) -> Unit
+pub fn ComponentRegistry::set_enabled_names(Self, @set.Set[String]) -> Unit
+pub fn ComponentRegistry::unregister(Self, String) -> Unit
+
+pub(all) enum ComponentType {
+  Tool
+  Skill
+  Prompt
+} derive(Eq, ToJson, @debug.Debug, @json.FromJson)
+
+// Type aliases
+
+// Traits
+pub(open) trait Component {
+  fn component_type(Self) -> ComponentType
+  fn name(Self) -> String
+  fn version(Self) -> String
+  fn input_schema(Self) -> @tool.JsonSchema
+  fn output_schema(Self) -> @tool.JsonSchema
+  fn enabled(Self) -> Bool
+}
+pub impl Component for @tool.Tool
+
+pub(open) trait PromptComponent : Component {
+  fn render(Self) -> (Map[String, Json]) -> String
+}
+
+pub(open) trait SkillComponent : Component {
+  fn apply(Self) -> async (Array[@ai.Message]) -> Unit
+}
+
+pub(open) trait ToolComponent : Component {
+  fn execute(Self) -> async (Json) -> @tool.ToolResult noraise
+}
+pub impl ToolComponent for @tool.Tool
+

@@ -1,0 +1,31 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/internal/perm"
+
+import {
+  "moonbitlang/core/debug",
+  "moonbitlang/core/json",
+}
+
+// Values
+
+// Errors
+
+// Types and methods
+pub(all) enum Access {
+  Read
+  Write
+  Execute
+} derive(Eq, ToJson, @debug.Debug, @json.FromJson)
+
+pub(all) enum Permission {
+  PathAccess(String, Access)
+  CommandExecution(String)
+  NetworkAccess(String)
+} derive(Eq, @debug.Debug)
+pub impl ToJson for Permission
+pub impl @json.FromJson for Permission
+
+// Type aliases
+
+// Traits
+
