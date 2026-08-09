@@ -1,0 +1,13 @@
+import {
+  "moonbitlang/maria/component",
+  "moonbitlang/maria/internal/spawn",
+  "moonbitlang/maria/tool",
+  "moonbitlang/core/json",
+  "moonbitlang/core/debug",
+}
+
+import {
+  "moonbitlang/async",
+  "moonbitlang/core/test",
+  "moonbitlang/maria/internal/mock",
+} for "test"

@@ -1,0 +1,56 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/mcp"
+
+import {
+  "moonbitlang/core/debug",
+  "moonbitlang/maria/component",
+  "moonbitlang/maria/internal/spawn",
+  "moonbitlang/maria/tool",
+}
+
+// Values
+
+// Errors
+pub suberror McpError {
+  ConnectionFailed(String)
+  HandshakeFailed(String)
+  RequestTimeout(String)
+  ProtocolError(String)
+} derive(ToJson, @debug.Debug)
+pub impl Show for McpError
+
+// Types and methods
+pub struct McpClient {
+  // private fields
+}
+pub async fn McpClient::call_tool(Self, String, Json) -> @tool.ToolResult noraise
+pub fn McpClient::close(Self) -> Unit
+pub async fn McpClient::initialize(Self) -> Unit raise McpError
+pub async fn McpClient::list_tools(Self) -> Array[McpTool] raise McpError
+pub fn McpClient::new(&McpTransport) -> Self
+
+pub struct McpTool {
+  name : String
+  description : String
+  input_schema : @tool.JsonSchema
+  // private fields
+}
+pub fn McpTool::new(name~ : String, description~ : String, input_schema~ : @tool.JsonSchema, call_fn~ : async (Json) -> @tool.ToolResult noraise) -> Self
+pub impl @component.Component for McpTool
+pub impl @component.ToolComponent for McpTool
+
+pub struct StdioTransport {
+  // private fields
+}
+pub fn StdioTransport::new(@spawn.InteractiveProcess) -> Self
+pub impl McpTransport for StdioTransport
+
+// Type aliases
+
+// Traits
+pub(open) trait McpTransport {
+  fn send(Self, Json) -> async (Unit) -> Unit raise McpError
+  fn receive(Self) -> async (Unit) -> Json raise McpError
+  fn close(Self) -> Unit
+}
+
