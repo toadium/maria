@@ -127,3 +127,116 @@ fn parse_skill_from_content(
     location,
   }
 }
+
+///|
+/// 公开构造函数，使 blackbox 测试和 ComponentRegistry 场景可手动构造 Skill 实例。
+/// 不验证字段约束（name 非空、长度限制等），调用者负责保证不变量；
+/// 文件加载路径 parse_skill_from_content 会验证。
+pub fn Skill::new(
+  name~ : String,
+  description~ : String,
+  location~ : String,
+  license? : String,
+  compatibility? : String,
+  allowed_tools? : Array[String] = [],
+  metadata? : Json,
+) -> Skill {
+  Skill::{
+    name,
+    description,
+    location,
+    license,
+    compatibility,
+    allowed_tools,
+    metadata,
+  }
+}
+
+///|
+/// Skill 实现 Component trait，暴露技能组件元信息。
+/// version 硬编码 "0.1.0"（当前模块版本，moon.mod 中 version = "0.1.0"）。
+/// R24 版本升级至 0.2.0 时此处须同步更新，避免版本号遗漏。
+pub impl @component.Component for Skill with fn component_type(self) {
+  ignore(self)
+  @component.ComponentType::Skill
+}
+
+///|
+pub impl @component.Component for Skill with fn name(self) {
+  self.name
+}
+
+///|
+pub impl @component.Component for Skill with fn version(self) {
+  ignore(self)
+  "0.1.0"
+}
+
+///|
+pub impl @component.Component for Skill with fn input_schema(self) {
+  ignore(self)
+  @tool.JsonSchema(Json::empty_object())
+}
+
+///|
+pub impl @component.Component for Skill with fn output_schema(self) {
+  ignore(self)
+  @tool.JsonSchema(Json::empty_object())
+}
+
+///|
+pub impl @component.Component for Skill with fn enabled(self) {
+  ignore(self)
+  true
+}
+
+///|
+/// Skill 实现 SkillComponent trait，apply 返回 async 函数值变换 messages。
+/// 生成单 skill XML（不含 SKILLS 说明 preamble）追加到 system message。
+/// preamble 由上层 ComponentRegistry/Agent 统一注入，避免每个 skill 重复注入。
+pub impl @component.SkillComponent for Skill with fn apply(self : Skill) -> async (
+  Array[@ai.Message],
+) -> Unit {
+  messages => self.apply_to_messages(messages)
+}
+
+///|
+/// 生成单 skill XML（不含 SKILLS 说明 preamble）。
+/// 格式：<available_skills>\n  <skill>\n    <name>...</name>\n    <description>...</description>\n    <location>...</location>\n  </skill>\n</available_skills>
+fn Skill::format_prompt(self : Skill) -> String {
+  let sb = StringBuilder::new()
+  sb.write_string("<available_skills>\n")
+  sb.write_string("  <skill>\n")
+  sb.write_string("    <name>")
+  sb.write_string(self.name)
+  sb.write_string("</name>\n")
+  sb.write_string("    <description>")
+  sb.write_string(self.description)
+  sb.write_string("</description>\n")
+  sb.write_string("    <location>")
+  sb.write_string(self.location)
+  sb.write_string("</location>\n")
+  sb.write_string("  </skill>\n")
+  sb.write_string("</available_skills>")
+  sb.to_string()
+}
+
+///|
+/// 将自身描述信息以单 skill XML 格式追加到 messages 的 system message。
+/// 找到 System message 则追加 "\n\n" + skill_prompt，未找到则 insert(0) 新建 System message。
+/// 多个 System message 时仅处理第一个（与 Loader::apply 行为一致）。
+fn Skill::apply_to_messages(
+  self : Skill,
+  messages : Array[@ai.Message],
+) -> Unit {
+  let skill_prompt = self.format_prompt()
+  for i, msg in messages {
+    if msg is System(sys_msg) {
+      messages[i] = @ai.system_message(content=sys_msg + "\n\n" + skill_prompt)
+      return
+    }
+  } nobreak {
+    messages.insert(0, @ai.system_message(content=skill_prompt))
+    return
+  }
+}
