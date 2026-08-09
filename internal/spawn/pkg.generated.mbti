@@ -2,6 +2,7 @@
 package "moonbitlang/maria/internal/spawn"
 
 import {
+  "moonbitlang/async",
   "moonbitlang/maria/internal/errno",
 }
 
@@ -13,6 +14,8 @@ pub fn getppid() -> Int
 pub fn kill(Int, Int) -> Unit raise @errno.Errno
 
 pub async fn spawn(StringView, Array[StringView], stdin? : String, timeout? : Int, cwd? : StringView, env? : Map[String, String]) -> CompletedProcess
+
+pub async fn[X] spawn_interactive(@async.TaskGroup[X], StringView, Array[StringView], cwd? : StringView, env? : Map[String, String]) -> InteractiveProcess
 
 // Errors
 pub suberror Failed {
@@ -39,6 +42,15 @@ pub struct CompletedProcess {
   timeout : Int?
 } derive(ToJson)
 pub fn CompletedProcess::check(Self) -> Unit raise Failed
+
+pub struct InteractiveProcess {
+  // private fields
+}
+pub fn InteractiveProcess::close(Self) -> Unit
+pub fn InteractiveProcess::pid(Self) -> Int
+pub async fn InteractiveProcess::read_line(Self) -> String?
+pub async fn InteractiveProcess::wait(Self) -> Int
+pub async fn InteractiveProcess::write(Self, String) -> Unit
 
 pub struct Manager {
   mut id : Int
