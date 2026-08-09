@@ -282,3 +282,10 @@ async test "invalid-range" (t : @test.Test) {
     )
   })
 }
+
+///|
+test "permissions_declaration" {
+  let manager = @file.manager(cwd=".")
+  let tool = @read_file.new(manager)
+  assert_eq(tool.desc.permissions, [@perm.PathAccess("", @perm.Read)])
+}

@@ -119,3 +119,9 @@ async test "background" (t : @test.Test) {
     inspect(output.to_message().content(), content="")
   })
 }
+
+///|
+test "permissions_declaration" {
+  let tool = @execute_command.new(@job.Manager::new(cwd="."))
+  assert_eq(tool.desc.permissions, [@perm.CommandExecution("")])
+}

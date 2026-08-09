@@ -195,6 +195,7 @@ pub fn new(manager : @file.Manager) -> @tool.Tool {
     ),
     name="read_file",
     schema~,
+    permissions=[@perm.PathAccess("", @perm.Read)],
     @tool.ToolFn(async fn(args) -> @tool.ToolResult noraise {
       execute_read_file_tool(manager, args)
     }),

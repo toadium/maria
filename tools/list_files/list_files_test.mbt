@@ -49,3 +49,10 @@ async test "list_files_invalid_symlink" (t : @test.Test) {
     )
   })
 }
+
+///|
+test "permissions_declaration" {
+  let manager = @file.manager(cwd=".")
+  let tool = @list_files.new(manager)
+  assert_eq(tool.desc.permissions, [@perm.PathAccess("", @perm.Read)])
+}

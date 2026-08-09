@@ -96,6 +96,7 @@ pub fn new(ctx : @job.Manager) -> @tool.Tool {
     description="Execute an shell command with arguments and capture its output.",
     name="execute_command",
     schema~,
+    permissions=[@perm.CommandExecution("")],
     @tool.ToolFn(async fn(args) -> @tool.ToolResult noraise {
       guard args is { "command": String(command), .. } else {
         return @tool.failed("Error: 'command' parameters is required")

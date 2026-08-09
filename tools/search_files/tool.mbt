@@ -510,6 +510,7 @@ pub fn new(cwd : String) -> @tool.Tool {
     description="Search for patterns in files with three distinct modes: regex-based file content search, fuzzy symbolic search for MoonBit definitions, and MoonBit references search. This tool performs searches through files in the specified directory or file, displaying matches with context lines (configurable, default 2 lines before and after each match). Use 'regex' kind for traditional pattern matching in code/text, 'moonbit_definition' kind for finding MoonBit symbol definitions with fuzzy matching (symbol names can be imprecise), or 'moonbit_references' kind for finding all references to a MoonBit symbol.",
     name="search_files",
     schema~,
+    permissions=[@perm.PathAccess("", @perm.Read)],
     @tool.ToolFn(async fn(args) -> @tool.ToolResult noraise {
       search_files_impl(args, cwd)
     }),

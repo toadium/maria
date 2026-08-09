@@ -282,3 +282,9 @@ async test "search_files/does-not-respect-gitignore" (t : @test.Test) {
     )
   })
 }
+
+///|
+test "permissions_declaration" {
+  let tool = @search_files.new(".")
+  assert_eq(tool.desc.permissions, [@perm.PathAccess("", @perm.Read)])
+}

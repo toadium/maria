@@ -52,6 +52,7 @@ pub fn new(cwd : String) -> @tool.Tool {
       #|*** End Patch
     ),
     schema~,
+    permissions=[@perm.PathAccess("", @perm.Write)],
     async fn(args) -> @tool.ToolResult noraise {
       let params : Params = @json.from_json(args) catch {
         err => return @tool.failed("Invalid arguments: \{err}")

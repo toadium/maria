@@ -68,3 +68,9 @@ async test "write_to_file/no-write-permission" (t : @test.Test) {
 async fn _keep_fs_import(_ : @test.Test) -> Unit {
   ignore(@fs.exists("."))
 }
+
+///|
+test "permissions_declaration" {
+  let tool = @write_to_file.new(".")
+  assert_eq(tool.desc.permissions, [@perm.PathAccess("", @perm.Write)])
+}

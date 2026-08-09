@@ -190,3 +190,10 @@ async test "replace_in_file/no-write-permission" (t : @test.Test) {
 async fn _keep_fs_import(_ : @test.Test) -> Unit {
   ignore(@fs.exists("."))
 }
+
+///|
+test "permissions_declaration" {
+  let manager = @file.manager(cwd=".")
+  let tool = @replace_in_file.new(manager)
+  assert_eq(tool.desc.permissions, [@perm.PathAccess("", @perm.Write)])
+}

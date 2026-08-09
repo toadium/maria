@@ -88,6 +88,7 @@ pub fn new(cwd : String) -> @tool.Tool {
     ),
     name="write_to_file",
     schema~,
+    permissions=[@perm.PathAccess("", @perm.Write)],
     args => {
       let { path, separator, content } : Params = @json.from_json(args) catch {
         error => return @tool.failed("Invalid arguments: \{error}")

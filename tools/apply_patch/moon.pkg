@@ -1,5 +1,6 @@
 import {
   "moonbitlang/maria/tool",
+  "moonbitlang/maria/internal/perm",
   "moonbitlang/maria/internal/fsx",
   "moonbitlang/x/path",
   "moonbitlang/core/json",

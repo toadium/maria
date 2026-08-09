@@ -108,6 +108,7 @@ pub fn new(manager : @file.Manager) -> @tool.Tool {
     description="List files in a directory",
     name="list_files",
     schema~,
+    permissions=[@perm.PathAccess("", @perm.Read)],
     async fn(args) -> @tool.ToolResult noraise {
       let { path } : InputPath = @json.from_json(args) catch {
         // TODO(upstream): weird error when missing `_ => `

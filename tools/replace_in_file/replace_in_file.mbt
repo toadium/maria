@@ -140,6 +140,7 @@ pub fn new(manager : @file.Manager) -> @tool.Tool {
     description="Write content to a file at the specified path using search/replace operation. For new files, provide only a replace parameter. For existing files, the search content must match exactly. This tool will automatically create any directories needed to write the file.",
     name="replace_in_file",
     schema~,
+    permissions=[@perm.PathAccess("", @perm.Write)],
     async fn(args) -> @tool.ToolResult noraise {
       manager.execute_replace_in_file(args)
     },
