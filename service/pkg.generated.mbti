@@ -59,8 +59,9 @@ pub fn Session::is_busy(Self) -> Bool
 
 pub(all) enum SessionCommand {
   Create(CreateRequest, @aqueue.Queue[CreateResult])
-  Send(SessionId, @ai.Message, Bool, @aqueue.Queue[Bool])
+  Send(SessionId, @ai.Message, Bool, @aqueue.Queue[@uuid.Uuid?])
   Close(SessionId, @aqueue.Queue[Bool])
+  Cancel(SessionId, @aqueue.Queue[Bool])
   List(@aqueue.Queue[Array[SessionInfo]])
   Get(SessionId, @aqueue.Queue[SessionInfo?])
   GetBroadcast(SessionId, @aqueue.Queue[@broadcast.Broadcast[@event.Event]?])
@@ -94,15 +95,17 @@ pub struct SessionManager {
   clock : &@clock.Clock
   mut shutdown : Bool
 }
+pub async fn SessionManager::cancel_session(Self, SessionId) -> Bool
 pub async fn SessionManager::close_session(Self, SessionId) -> Bool
 pub fn SessionManager::command_queue(Self) -> @aqueue.Queue[SessionCommand]
 pub async fn SessionManager::create_session(Self, CreateRequest) -> CreateResult
 pub async fn SessionManager::get_session(Self, SessionId) -> SessionInfo?
+pub fn SessionManager::get_session_agent(Self, SessionId) -> @agent.Agent?
 pub async fn SessionManager::get_session_broadcast(Self, SessionId) -> @broadcast.Broadcast[@event.Event]?
 pub async fn SessionManager::list_sessions(Self) -> Array[SessionInfo]
 pub fn SessionManager::new(config~ : SessionManagerConfig, uuid? : @uuid.Generator, logger? : @pino.Logger, clock? : &@clock.Clock) -> Self raise
 pub async fn SessionManager::run(Self) -> Unit
-pub async fn SessionManager::send_message(Self, SessionId, @ai.Message, Bool) -> Bool
+pub async fn SessionManager::send_message(Self, SessionId, @ai.Message, Bool) -> @uuid.Uuid
 pub fn SessionManager::shutdown(Self) -> Unit
 
 pub struct SessionManagerConfig {

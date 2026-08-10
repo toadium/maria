@@ -110,7 +110,7 @@ async test "POST /v1/message" (t : @test.Test) {
     mock.group.spawn_bg(() => server.start(), no_wait=true)
     let (r, b) = @http.get("http://localhost:\{server.port()}/v1/status")
     json_inspect(r.code, content=200)
-    json_inspect(b.json(), content={ "status": "idle", "web_search": false })
+    json_inspect(b.json(), content={ "sessions": 1, "max_sessions": 16, "active": 0 })
     let (r, b) = @httpx.post_json(
       "http://localhost:\{server.port()}/v1/message",
       { "message": { "role": "user", "content": "Hello, Maria!" } },
@@ -130,7 +130,7 @@ async test "POST /v1/message" (t : @test.Test) {
     guard b is { "id": String(qid), "queued": queued, .. } else {
       fail("Invalid response body: \{b.stringify(indent=2)}")
     }
-    json_inspect(queued, content=true)
+    json_inspect(queued, content=false)
     let (r, b) = @http.get(
       "http://localhost:\{server.port()}/v1/queued-messages",
     )
@@ -316,7 +316,7 @@ async test "POST /v1/cancel" (t : @test.Test) {
       })
       let (r, b) = @http.get("http://localhost:\{server.port()}/v1/status")
       json_inspect(r.code, content=200)
-      json_inspect(b.json(), content={ "status": "idle", "web_search": false })
+      json_inspect(b.json(), content={ "sessions": 1, "max_sessions": 16, "active": 0 })
       let (r, b) = @httpx.post_json(
         "http://localhost:\{server.port()}/v1/message",
         { "message": { "role": "user", "content": "Hello, Maria!" } },
@@ -336,7 +336,7 @@ async test "POST /v1/cancel" (t : @test.Test) {
         },
       )
       let b = b.json()
-      guard b is { "id": String(id), "queued": true, .. } else {
+      guard b is { "id": String(id), "queued": false, .. } else {
         fail("Invalid response body: \{b.stringify(indent=2)}")
       }
       let (r, b) = @httpx.post_json(
@@ -345,6 +345,7 @@ async test "POST /v1/cancel" (t : @test.Test) {
       )
       json_inspect(r.code, content=200)
       json_inspect(b.json(), content={
+        "success": true,
         "pending_messages": [
           {
             "id": id,
@@ -352,7 +353,6 @@ async test "POST /v1/cancel" (t : @test.Test) {
               "role": "user",
               "content": "This message will be popped on cancellation",
             },
-            "web_search": false,
           },
         ],
       })
@@ -504,7 +504,7 @@ async test "GET /v1/external-event/user-message" (t : @test.Test) {
     mock.group.spawn_bg(() => server.start(), no_wait=true)
     let (r, b) = @http.get("http://localhost:\{server.port()}/v1/status")
     json_inspect(r.code, content=200)
-    json_inspect(b.json(), content={ "status": "idle", "web_search": false })
+    json_inspect(b.json(), content={ "sessions": 1, "max_sessions": 16, "active": 0 })
     let (r, b) = @httpx.post_json(
       "http://localhost:\{server.port()}/v1/external-event/user-message",
       { "message": "Hello, Maria!" },
@@ -535,7 +535,7 @@ async test "GET /v1/external-event/cancel" (t : @test.Test) {
     })
     let (r, b) = @http.get("http://localhost:\{server.port()}/v1/status")
     json_inspect(r.code, content=200)
-    json_inspect(b.json(), content={ "status": "idle", "web_search": false })
+    json_inspect(b.json(), content={ "sessions": 1, "max_sessions": 16, "active": 0 })
     let (r, b) = @httpx.post_json(
       "http://localhost:\{server.port()}/v1/message",
       {
@@ -565,7 +565,7 @@ async test "GET /v1/external-event/cancel" (t : @test.Test) {
     guard b is { "id": String(_), "queued": queued, .. } else {
       fail("Invalid response body: \{b.stringify(indent=2)}")
     }
-    json_inspect(queued, content=true)
+    json_inspect(queued, content=false)
     let (r, _) = @httpx.post_json(
       "http://localhost:\{server.port()}/v1/external-event/cancel",
       Json::empty_object(),

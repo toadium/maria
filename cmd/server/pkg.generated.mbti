@@ -21,7 +21,6 @@ pub fn CreateMessageRequest::new(message~ : @ai.Message, web_search? : Bool) -> 
 pub impl ToJson for CreateMessageRequest
 
 type CreateMessageResponse
-pub fn CreateMessageResponse::new(id~ : @uuid.Uuid, queued~ : Bool) -> Self
 pub impl ToJson for CreateMessageResponse
 pub impl @json.FromJson for CreateMessageResponse
 
@@ -44,8 +43,9 @@ pub(all) struct RegisterResponse {
 } derive(ToJson, @json.FromJson)
 
 type Server
-pub async fn Server::new(name? : String, model? : String, register? : RegisterInfo, serve~ : String, port~ : Int, home? : String, cwd? : String, web_search? : Bool, resume_id? : @uuid.Uuid) -> Self
+pub fn Server::new(name? : String, model? : String, register? : RegisterInfo, serve~ : String, port~ : Int, home? : String, cwd? : String, web_search? : Bool, resume_id? : @uuid.Uuid, max_sessions? : Int) -> Self raise
 pub fn Server::port(Self) -> Int
+pub fn Server::shutdown(Self) -> Unit
 pub async fn Server::start(Self) -> Unit
 
 pub(all) enum ServerStreamEvent {
@@ -54,13 +54,6 @@ pub(all) enum ServerStreamEvent {
 }
 pub impl @httpx.FromEvent for ServerStreamEvent
 pub impl @httpx.ToEvent for ServerStreamEvent
-
-pub(all) enum Status {
-  Idle
-  Busy
-}
-pub impl ToJson for Status
-pub impl @json.FromJson for Status
 
 // Type aliases
 

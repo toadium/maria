@@ -103,7 +103,12 @@ pub async fn SessionManager::run(self : SessionManager) -> Unit {
           let web_search = req.web_search.unwrap_or(
             self.config.default_web_search,
           )
-          match @model.load(home~, cwd~, name=model_name) {
+          let model_opt : String? = if model_name.is_empty() {
+            None
+          } else {
+            Some(model_name)
+          }
+          match @model.load(home~, cwd~, name?=model_opt) {
             None => {
               reply_queue.put(
                 CreateResult::Failed("model not found: " + model_name),
@@ -209,7 +214,7 @@ pub async fn SessionManager::run(self : SessionManager) -> Unit {
         Send(id, msg, web_search, reply_queue) =>
           match self.sessions.get(id) {
             Some(session) => {
-              ignore(session.agent.queue_message(msg, web_search~))
+              let msg_id = session.agent.queue_message(msg, web_search~)
               if session.task is None {
                 let task = group.spawn(
                   () => {
@@ -233,9 +238,9 @@ pub async fn SessionManager::run(self : SessionManager) -> Unit {
               }
               session.last_active = self.clock.now()
               self.sessions[id] = session
-              reply_queue.put(true)
+              reply_queue.put(Some(msg_id))
             }
-            None => reply_queue.put(false)
+            None => reply_queue.put(None)
           }
         Close(id, reply_queue) =>
           match self.sessions.get(id) {
@@ -245,6 +250,16 @@ pub async fn SessionManager::run(self : SessionManager) -> Unit {
                 task.cancel()
               }
               self.sessions.remove(id)
+              reply_queue.put(true)
+            }
+            None => reply_queue.put(false)
+          }
+        Cancel(id, reply_queue) =>
+          match self.sessions.get(id) {
+            Some(session) => {
+              if session.task is Some(task) {
+                task.cancel()
+              }
               reply_queue.put(true)
             }
             None => reply_queue.put(false)
@@ -303,14 +318,12 @@ pub async fn SessionManager::send_message(
   id : SessionId,
   msg : @ai.Message,
   web_search : Bool,
-) -> Bool {
+) -> @uuid.Uuid {
   let reply_queue = @aqueue.Queue::new(kind=@aqueue.Kind::Unbounded)
   self.session_queue.put(Send(id, msg, web_search, reply_queue))
-  let result = reply_queue.get()
-  if result {
-    true
-  } else {
-    raise SessionError::SessionNotFound(id)
+  match reply_queue.get() {
+    Some(msg_id) => msg_id
+    None => raise SessionError::SessionNotFound(id)
   }
 }
 
@@ -327,6 +340,16 @@ pub async fn SessionManager::close_session(
   } else {
     raise SessionError::SessionNotFound(id)
   }
+}
+
+///|
+pub async fn SessionManager::cancel_session(
+  self : SessionManager,
+  id : SessionId,
+) -> Bool {
+  let reply_queue = @aqueue.Queue::new(kind=@aqueue.Kind::Unbounded)
+  self.session_queue.put(Cancel(id, reply_queue))
+  reply_queue.get()
 }
 
 ///|
@@ -362,6 +385,17 @@ pub async fn SessionManager::get_session_broadcast(
 pub fn SessionManager::shutdown(self : SessionManager) -> Unit {
   try self.session_queue.try_put(Shutdown) |> ignore catch {
     _ => ()
+  }
+}
+
+///|
+pub fn SessionManager::get_session_agent(
+  self : SessionManager,
+  id : SessionId,
+) -> @agent.Agent? {
+  match self.sessions.get(id) {
+    Some(session) => Some(session.agent)
+    None => None
   }
 }
 

@@ -30,6 +30,15 @@ async fn Server::set_enabled_tools(
     }
     tools.add(tool_name)
   }
-  self.maria.agent.set_enabled_tools(tools)
-  w.send_json(code=200, Json::empty_object())
+  guard self.default_session_id is Some(session_id) else {
+    w.send_json(code=404, { "error": "Session not found" })
+  }
+  let agent = self.session_manager.get_session_agent(session_id)
+  match agent {
+    Some(a) => {
+      a.set_enabled_tools(tools)
+      w.send_json(code=200, Json::empty_object())
+    }
+    None => w.send_json(code=404, { "error": "Session not found" })
+  }
 }

@@ -385,7 +385,7 @@ async test "service/manager_send_message" (t : @test.Test) {
     }
     let msg = @ai.user_message(content="Hello")
     let sent = manager.send_message(session_id, msg, false)
-    inspect(sent, content="true")
+    inspect(sent == @uuid.nil, content="false")
     let info_opt = manager.get_session(session_id)
     guard info_opt is Some(info) else { fail("Session not found") }
     // last_active 更新验证（设计第 1040 行，r2 审查问题8 修订）
@@ -393,7 +393,7 @@ async test "service/manager_send_message" (t : @test.Test) {
     inspect(info.last_active.ms() > info.created_at.ms(), content="true")
     // web_search=true 参数传递验证（r1 审查问题8 修订）
     let sent2 = manager.send_message(session_id, msg, true)
-    inspect(sent2, content="true")
+    inspect(sent2 == @uuid.nil, content="false")
     // send_message(不存在的 id) 抛 SessionError::SessionNotFound（设计第 1039 行）
     let nonexistent = SessionId::from_uuid(mock.uuid.v4())
     try {
@@ -799,6 +799,210 @@ async test "service/manager_create_session_resume_id_not_found" (t : @test.Test)
     )
     // 会话未创建，sessions 为空
     inspect(manager.list_sessions().length(), content="0")
+    manager.shutdown()
+  })
+}
+
+///|
+async test "service/manager_get_session_agent" (t : @test.Test) {
+  @mock.run(t, mock => {
+    let model = mock.model(name=ClaudeHaiku4_5)
+    let config = SessionManagerConfig::new(
+      cwd=mock.cwd.path(),
+      home=mock.cwd.path(),
+      model=model.name,
+    )
+    let manager = SessionManager::new(
+      config~,
+      uuid=mock.uuid,
+      logger=mock.logger,
+      clock=mock.clock,
+    )
+    mock.group.spawn_bg(() => manager.run())
+    let result = manager.create_session(CreateRequest::{
+      name: None,
+      system_message: None,
+      web_search: None,
+      resume_id: None,
+      cwd: None,
+      home: None,
+      model: None,
+    })
+    guard result is Success(session_id, _) else {
+      fail("Expected Success, got \{result.to_json().stringify()}")
+    }
+    // 存在的会话返回 Some(agent)
+    let agent_opt = manager.get_session_agent(session_id)
+    inspect(agent_opt is Some(_), content="true")
+    // 不存在的会话返回 None
+    let nonexistent = SessionId::from_uuid(mock.uuid.v4())
+    inspect(manager.get_session_agent(nonexistent) is None, content="true")
+    manager.shutdown()
+  })
+}
+
+///|
+async test "service/manager_cancel_session" (t : @test.Test) {
+  @mock.run(t, mock => {
+    let model = mock.model(name=ClaudeHaiku4_5)
+    let config = SessionManagerConfig::new(
+      cwd=mock.cwd.path(),
+      home=mock.cwd.path(),
+      model=model.name,
+    )
+    let manager = SessionManager::new(
+      config~,
+      uuid=mock.uuid,
+      logger=mock.logger,
+      clock=mock.clock,
+    )
+    mock.group.spawn_bg(() => manager.run())
+    let result = manager.create_session(CreateRequest::{
+      name: None,
+      system_message: None,
+      web_search: None,
+      resume_id: None,
+      cwd: None,
+      home: None,
+      model: None,
+    })
+    guard result is Success(session_id, _) else {
+      fail("Expected Success, got \{result.to_json().stringify()}")
+    }
+    // 取消存在的会话返回 true
+    let cancelled = manager.cancel_session(session_id)
+    inspect(cancelled, content="true")
+    // 会话仍存在（cancel 不移除会话）
+    inspect(manager.get_session(session_id) is Some(_), content="true")
+    // 取消不存在的会话返回 false
+    let nonexistent = SessionId::from_uuid(mock.uuid.v4())
+    let cancelled2 = manager.cancel_session(nonexistent)
+    inspect(cancelled2, content="false")
+    manager.shutdown()
+  })
+}
+
+///|
+async test "service/manager_send_message_returns_uuid" (t : @test.Test) {
+  @mock.run(t, mock => {
+    let model = mock.model(name=ClaudeHaiku4_5)
+    let config = SessionManagerConfig::new(
+      cwd=mock.cwd.path(),
+      home=mock.cwd.path(),
+      model=model.name,
+    )
+    let manager = SessionManager::new(
+      config~,
+      uuid=mock.uuid,
+      logger=mock.logger,
+      clock=mock.clock,
+    )
+    mock.group.spawn_bg(() => manager.run())
+    let result = manager.create_session(CreateRequest::{
+      name: None,
+      system_message: None,
+      web_search: None,
+      resume_id: None,
+      cwd: None,
+      home: None,
+      model: None,
+    })
+    guard result is Success(session_id, _) else {
+      fail("Expected Success, got \{result.to_json().stringify()}")
+    }
+    // send_message 返回 @uuid.Uuid 消息 ID（非 nil）
+    let msg = @ai.user_message(content="Hello")
+    let msg_id = manager.send_message(session_id, msg, false)
+    inspect(msg_id == @uuid.nil, content="false")
+    // send_message(不存在的 id) 抛 SessionError::SessionNotFound
+    let nonexistent = SessionId::from_uuid(mock.uuid.v4())
+    try {
+      let _ = manager.send_message(nonexistent, msg, false)
+      fail("expected SessionNotFound")
+    } catch {
+      SessionError::SessionNotFound(_) => ()
+      _ => fail("expected SessionNotFound")
+    }
+    manager.shutdown()
+  })
+}
+
+///|
+async test "service/manager_create_session_empty_model_uses_default" (t : @test.Test) {
+  @mock.run(t, mock => {
+    let _ = mock.model(name=ClaudeHaiku4_5)
+    let config = SessionManagerConfig::new(
+      cwd=mock.cwd.path(),
+      home=mock.cwd.path(),
+      model="",
+    )
+    let manager = SessionManager::new(
+      config~,
+      uuid=mock.uuid,
+      logger=mock.logger,
+      clock=mock.clock,
+    )
+    mock.group.spawn_bg(() => manager.run())
+    let result = manager.create_session(CreateRequest::{
+      name: None,
+      system_message: None,
+      web_search: None,
+      resume_id: None,
+      cwd: None,
+      home: None,
+      model: None,
+    })
+    guard result is Success(session_id, _) else {
+      fail("Expected Success, got \{result.to_json().stringify()}")
+    }
+    // 验证使用了默认模型（anthropic/claude-sonnet-4.5）而非空字符串模型
+    let agent = manager.get_session_agent(session_id)
+    guard agent is Some(a) else { fail("expected agent for session") }
+    guard a.model.to_json() is { "name": name_json, .. } else {
+      fail("expected model with name field")
+    }
+    let model_name : String = @json.from_json(name_json)
+    inspect(model_name, content="anthropic/claude-sonnet-4.5")
+    manager.shutdown()
+  })
+}
+
+///|
+async test "service/manager_create_session_empty_model_in_request" (t : @test.Test) {
+  @mock.run(t, mock => {
+    let model = mock.model(name=ClaudeHaiku4_5)
+    let config = SessionManagerConfig::new(
+      cwd=mock.cwd.path(),
+      home=mock.cwd.path(),
+      model=model.name,
+    )
+    let manager = SessionManager::new(
+      config~,
+      uuid=mock.uuid,
+      logger=mock.logger,
+      clock=mock.clock,
+    )
+    mock.group.spawn_bg(() => manager.run())
+    let result = manager.create_session(CreateRequest::{
+      name: None,
+      system_message: None,
+      web_search: None,
+      resume_id: None,
+      cwd: None,
+      home: None,
+      model: Some(""),
+    })
+    guard result is Success(session_id, _) else {
+      fail("Expected Success, got \{result.to_json().stringify()}")
+    }
+    // 验证使用了默认模型（anthropic/claude-sonnet-4.5）而非 config.model 或空字符串
+    let agent = manager.get_session_agent(session_id)
+    guard agent is Some(a) else { fail("expected agent for session") }
+    guard a.model.to_json() is { "name": name_json, .. } else {
+      fail("expected model with name field")
+    }
+    let model_name : String = @json.from_json(name_json)
+    inspect(model_name, content="anthropic/claude-sonnet-4.5")
     manager.shutdown()
   })
 }

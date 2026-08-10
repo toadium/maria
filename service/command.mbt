@@ -53,8 +53,9 @@ pub(all) struct SessionInfo {
 ///|
 pub(all) enum SessionCommand {
   Create(CreateRequest, @aqueue.Queue[CreateResult])
-  Send(SessionId, @ai.Message, Bool, @aqueue.Queue[Bool])
+  Send(SessionId, @ai.Message, Bool, @aqueue.Queue[@uuid.Uuid?])
   Close(SessionId, @aqueue.Queue[Bool])
+  Cancel(SessionId, @aqueue.Queue[Bool])
   List(@aqueue.Queue[Array[SessionInfo]])
   Get(SessionId, @aqueue.Queue[SessionInfo?])
   GetBroadcast(SessionId, @aqueue.Queue[@broadcast.Broadcast[@event.Event]?])

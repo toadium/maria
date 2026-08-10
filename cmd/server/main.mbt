@@ -19,6 +19,7 @@ pub async fn start(args : ArrayView[String]) -> Unit {
   let mut web_search = false
   let mut resume_id = None
   let mut name = None
+  let mut max_sessions = None
   for args = args {
     match args {
       ["--name", n, .. args] =>
@@ -68,8 +69,16 @@ pub async fn start(args : ArrayView[String]) -> Unit {
         web_search = true
         continue args
       }
+      ["--max-sessions", n, .. args] => {
+        max_sessions = Some(@string.parse_int(n))
+        continue args
+      }
       ["--resume", rid, .. args] => {
-        resume_id = Some(@uuid.parse(rid))
+        resume_id = Some(
+          @uuid.parse(rid) catch {
+            _ => fail("Invalid resume ID format: \{rid}")
+          },
+        )
         continue args
       }
       [unknown, ..] => {
@@ -90,5 +99,14 @@ pub async fn start(args : ArrayView[String]) -> Unit {
         "--register-host, --register-port, and --register-id must be provided together",
       )
   }
-  Server::new(name?, model?, register?, serve~, port~, resume_id?, web_search~).start()
+  Server::new(
+    name?,
+    model?,
+    register?,
+    serve~,
+    port~,
+    resume_id?,
+    web_search~,
+    max_sessions?,
+  ).start()
 }

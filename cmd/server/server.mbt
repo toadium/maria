@@ -1,34 +1,17 @@
 ///|
-/// Runtime container that binds the Maria agent, HTTP server, and broadcast
-/// machinery needed to expose the API surface described in `README.md`.
+/// Multi-session HTTP runtime container that binds a SessionManager with an HTTP
+/// server and the broadcast machinery needed to expose the API surface
+/// described in `README.md`.
 struct Server {
-  uuid : @uuid.Generator
-  /// Long-lived Maria runtime plus agent state machine.
-  maria : @maria.Maria
-  /// SSE fan-out used to push events to every connected client.
-  broadcast : @broadcast.Broadcast[@event.Event]
-  /// Incoming message queue; each entry carries a reply channel to report
-  /// whether it started immediately or was queued.
-  message_queue : @aqueue.Queue[
-    (CreateMessageRequest, @aqueue.Queue[(@uuid.Uuid, Bool)]),
-  ]
-  /// Handle to the currently running Maria task (when any) so we can cancel or
-  /// report busy/idle status.
-  mut task : @async.Task[Unit]?
-  /// Directory served as static assets (usually `cmd/server`).
+  session_manager : @service.SessionManager
+  config : @service.SessionManagerConfig
+  mut default_session_id : @service.SessionId?
+  resume_id : @uuid.Uuid?
+  name : String?
+  register : RegisterInfo?
   serve : String
-  /// TCP port bound by the underlying HTTP server.
   port : Int
-  /// Underlying HTTP listener that dispatches all endpoints.
   http_server : @httpx.Server
-}
-
-///|
-fn Server::status(self : Server) -> Status {
-  match self.task {
-    None => Status::Idle
-    Some(_) => Status::Busy
-  }
 }
 
 ///|
@@ -37,10 +20,10 @@ pub fn Server::port(self : Server) -> Int {
 }
 
 ///|
-/// Boots Maria, wires the SSE broadcast pipeline, optionally registers with a
-/// daemon, and binds an `@httpx.Server`. The returned handle is ready to
-/// `start()`.
-pub async fn Server::new(
+/// Constructs a Server with a SessionManager. The default session is not
+/// pre-created here because `SessionManager::run` has not started yet; it is
+/// created in `Server::start` after the run loop is spawned.
+pub fn Server::new(
   name? : String,
   model? : String,
   register? : RegisterInfo,
@@ -50,52 +33,31 @@ pub async fn Server::new(
   cwd? : String,
   web_search? : Bool = false,
   resume_id? : @uuid.Uuid,
-) -> Server {
+  max_sessions? : Int,
+) -> Server raise {
   let home = match home {
-    Some(home) => home
+    Some(h) => h
     None => @os.home()
   }
-  let broadcast = @broadcast.Broadcast::new()
-  let uuid = @uuid.generator(@rand.chacha8())
-  guard @model.load(home~, name?=model) is Some(model) else {
-    fail(
-      "Failed to load model " +
-      @debug.to_string(model) +
-      " from cwd " +
-      @debug.to_string(cwd),
-    )
-  }
-  let maria = if resume_id is Some(resume_id) {
-    @maria.Maria::resume_(model~, resume_id, web_search~)
-  } else {
-    @maria.Maria::new(name?, model~, cwd?, web_search~)
-  }
-  maria.agent.add_listener((event : @event.Event) => broadcast.put(event))
+  let cwd = cwd.unwrap_or(@os.cwd())
+  let model = model.unwrap_or("")
+  let config = @service.SessionManagerConfig::new(
+    cwd~,
+    home~,
+    model~,
+    max_sessions?,
+    default_web_search=web_search,
+  )
+  let session_manager = @service.SessionManager::new(config~)
   let http_server = @httpx.Server::new("[::]", port, reuse_addr=true)
   let port = http_server.port()
-  if register is Some(register) {
-    register.register(
-      port~,
-      new_id=maria.agent.id(),
-      web_search=maria.agent.web_search,
-      cwd=maria.agent.cwd,
-      model=maria.agent.model.name,
-    )
-    |> ignore()
-  } else {
-    logger.warn("No register information provided; skipping registration.")
-    let pid = @spawn.getpid()
-    logger.info("Listening on port \{port}", data={ "pid": pid })
-    logger.info("Visit http://localhost:\{port}/ to access the server.", data={
-      "pid": pid,
-    })
-  }
   Server::{
-    uuid,
-    maria,
-    broadcast,
-    message_queue: @aqueue.new(kind=Unbounded),
-    task: None,
+    session_manager,
+    config,
+    default_session_id: None,
+    resume_id,
+    name,
+    register,
     serve,
     port,
     http_server,
@@ -107,14 +69,28 @@ pub async fn Server::new(
 /// streams behind the necessary CORS wrapper.
 async fn Server::serve_http(self : Server) -> Unit {
   let router = @httpx.Router::new()
-  router.add_handler(Get, "/v1/status", (_, w) => {
-    let w = @httpx.JsonResponseWriter::new(w)
-    w.write_header(200)
-    w.write_json({
-      "status": self.status(),
-      "web_search": self.maria.agent.web_search,
-    })
+  // Multi-session endpoints
+  router.add_handler(Post, "/v1/sessions", (r, w) => {
+    self.create_session_handler(r, w)
   })
+  router.add_handler(Get, "/v1/sessions", (_, w) => {
+    self.list_sessions_handler(w)
+  })
+  router.add_handler(Get, "/v1/sessions/{id}", (r, w) => {
+    self.get_session_handler(r, w)
+  })
+  router.add_handler(Delete, "/v1/sessions/{id}", (r, w) => {
+    self.close_session_handler(r, w)
+  })
+  router.add_handler(Get, "/v1/sessions/{id}/events", (r, w) => {
+    self.get_session_events(r, w)
+  })
+  router.add_handler(Post, "/v1/sessions/{id}/message", (r, w) => {
+    self.send_session_message(r, w)
+  })
+  // Legacy endpoints (default session aliases, except GET /v1/status which is
+  // now a global multi-session status)
+  router.add_handler(Get, "/v1/status", (_, w) => self.get_status(w))
   router.add_handler(Post, "/v1/cancel", (_, w) => self.cancel_maria(w))
   router.add_handler(Get, "/v1/queued-messages", (_, w) => {
     self.get_queued_messages(w)
@@ -144,66 +120,14 @@ async fn Server::serve_http(self : Server) -> Unit {
     let r = @httpx.JsonRequestReader::new(r)
     self.set_system_prompt(r.read_json(), w)
   })
+  // Graceful shutdown endpoint (registered last to avoid path match conflicts)
+  router.add_handler(Post, "/v1/shutdown", (_req, w) => {
+    w.send_json(code=200, { "success": true })
+    self.shutdown()
+  })
   let file_server = @httpx.FileServer::new(self.serve)
   router.set_not_found_handler((r, w) => file_server.handle(r, w))
   self.http_server.serve(@httpx.cors(router.handler()))
-}
-
-///|
-/// Background worker that drains the inbound queue, kicks off the Maria agent,
-/// and mirrors failures into the broadcast stream.
-async fn Server::start_maria(self : Server) -> Unit {
-  while true {
-    @async.with_task_group(group => {
-      let (msg, idq) = self.message_queue.get()
-      let id = self.maria.agent.queue_message(
-        msg.message,
-        web_search?=msg.web_search,
-      )
-      group.spawn_bg(
-        () => {
-          while true {
-            let (msg, idq) = self.message_queue.get()
-            let id = self.maria.agent.queue_message(
-              msg.message,
-              web_search?=msg.web_search,
-            )
-            idq.put((id, true))
-          }
-        },
-        no_wait=true,
-      )
-      idq.put((id, false))
-      let task = group.spawn(
-        () => {
-          logger.info("Starting Maria task...")
-          self.maria.agent.start() catch {
-            error => {
-              logger.error("Maria task failed: " + @debug.to_string(error))
-              if !@async.is_being_cancelled() {
-                self.broadcast.put(
-                  @event.Event::new(id=self.uuid.v4(), Failed(error.to_json())),
-                )
-              } else {
-                self.broadcast.put(
-                  @event.Event::new(id=self.uuid.v4(), @event.Cancelled),
-                )
-              }
-              raise error
-            }
-          }
-        },
-        allow_failure=true,
-      )
-      self.task = Some(task)
-      defer {
-        self.task = None
-      }
-      task.wait() catch {
-        _ => ()
-      }
-    })
-  }
 }
 
 ///|
@@ -221,24 +145,84 @@ async fn @httpx.ResponseWriter::send_json(
 /// Cancels the running agent (if any) and returns the pending queue back to
 /// the client so UIs can decide what to do next.
 async fn Server::cancel_maria(self : Server, w : @httpx.ResponseWriter) -> Unit {
-  guard self.task is Some(task) else {
-    w.send_json(code=404, {
-      "error": { "code": -1, "message": "No running task to cancel." },
-    })
+  guard self.default_session_id is Some(session_id) else {
+    w.send_json(code=404, { "error": "Session not found" })
   }
-  task.cancel()
-  let pms = self.maria.agent.clear_inputs()
-  w.send_json(code=200, { "pending_messages": pms.to_json() })
+  let agent = self.session_manager.get_session_agent(session_id)
+  match agent {
+    Some(a) => {
+      let pms = a.clear_inputs()
+      let _ = self.session_manager.cancel_session(session_id)
+      let pms_json : Array[Json] = pms.map(m => {
+        "id": m.id,
+        "message": m.message.to_openai(),
+      })
+      w.send_json(code=200, {
+        "success": true,
+        "pending_messages": pms_json.to_json(),
+      })
+    }
+    None => w.send_json(code=404, { "error": "Session not found" })
+  }
 }
 
 ///|
-/// Runs the HTTP server alongside the background Maria worker until the
-/// process is cancelled.
+/// Runs the HTTP server alongside the background SessionManager worker until
+/// the process is cancelled.
 pub async fn Server::start(self : Server) -> Unit {
   @async.with_task_group(group => {
-    group.spawn_bg(() => self.start_maria(), allow_failure=true)
+    group.spawn_bg(() => self.session_manager.run(), allow_failure=true)
+    defer self.session_manager.shutdown()
+    let req : @service.CreateRequest = @service.CreateRequest::{
+      resume_id: self.resume_id,
+      name: self.name,
+      system_message: None,
+      web_search: None,
+      cwd: None,
+      home: None,
+      model: None,
+    }
+    match self.session_manager.create_session(req) {
+      Success(session_id, agent_id) => {
+        self.default_session_id = Some(session_id)
+        if self.register is Some(register) {
+          let agent = self.session_manager.get_session_agent(session_id)
+          match agent {
+            Some(a) =>
+              register.register(
+                port=self.port,
+                new_id=agent_id.to_uuid(),
+                web_search=a.web_search,
+                cwd=a.cwd,
+                model=a.model.name,
+              )
+              |> ignore()
+            None => ()
+          }
+        } else {
+          logger.warn(
+            "No register information provided; skipping registration.",
+          )
+          let pid = @spawn.getpid()
+          logger.info("Listening on port \{self.port}", data={ "pid": pid })
+          logger.info(
+            "Visit http://localhost:\{self.port}/ to access the server.",
+            data={ "pid": pid },
+          )
+        }
+      }
+      LimitExceeded =>
+        fail("Failed to create default session: concurrent limit exceeded")
+      Failed(msg) => fail("Failed to create default session: \{msg}")
+    }
     self.serve_http()
   })
+}
+
+///|
+pub fn Server::shutdown(self : Server) -> Unit {
+  self.session_manager.shutdown()
+  self.http_server.close()
 }
 
 ///|
@@ -278,22 +262,35 @@ pub impl @httpx.ToEvent for ServerStreamEvent with fn to_event(
 
 ///|
 /// Streams Maria lifecycle events plus queue synchronization messages over
-/// Server-Sent Events.
+/// Server-Sent Events for the default session.
 async fn Server::get_events(self : Server, w : @httpx.ResponseWriter) -> Unit {
-  let w = @httpx.EventStreamWriter::new(w)
-  w.write_header(200)
-  w.write(MariaQueuedMessagesSynchronized(self.maria.agent.queued_messages()))
-  self.broadcast.listen_forever(event => {
-    if event.desc is (TokenCounted(_) | ContextPruned(_)) {
-      return
+  guard self.default_session_id is Some(session_id) else {
+    w.send_json(code=404, { "error": "Session not found" })
+  }
+  let broadcast = self.session_manager.get_session_broadcast(session_id)
+  match broadcast {
+    Some(b) => {
+      let agent = self.session_manager.get_session_agent(session_id)
+      match agent {
+        Some(a) => {
+          let w = @httpx.EventStreamWriter::new(w)
+          w.write_header(200)
+          w.write(MariaQueuedMessagesSynchronized(a.queued_messages()))
+          b.listen_forever(event => {
+            if event.desc is (TokenCounted(_) | ContextPruned(_)) {
+              return
+            }
+            w.write(Maria(event))
+            if event.desc is (MessageQueued(_) | MessageUnqueued(_)) {
+              w.write(MariaQueuedMessagesSynchronized(a.queued_messages()))
+            }
+          })
+        }
+        None => w.send_json(code=404, { "error": "Session not found" })
+      }
     }
-    w.write(Maria(event))
-    if event.desc is (MessageQueued(_) | MessageUnqueued(_)) {
-      w.write(
-        MariaQueuedMessagesSynchronized(self.maria.agent.queued_messages()),
-      )
-    }
-  })
+    None => w.send_json(code=404, { "error": "Session not found" })
+  }
 }
 
 ///|
@@ -302,21 +299,39 @@ async fn Server::get_queued_messages(
   self : Server,
   w : @httpx.ResponseWriter,
 ) -> Unit {
-  let queued_messages : Array[Json] = self.maria.agent
-    .queued_messages()
-    .map(m => { "id": m.id, "message": m.message.to_openai() })
-  w.send_json(code=200, queued_messages.to_json())
+  guard self.default_session_id is Some(session_id) else {
+    w.send_json(code=404, { "error": "Session not found" })
+  }
+  let agent = self.session_manager.get_session_agent(session_id)
+  match agent {
+    Some(a) => {
+      let queued_messages : Array[Json] = a
+        .queued_messages()
+        .map(m => { "id": m.id, "message": m.message.to_openai() })
+      w.send_json(code=200, queued_messages.to_json())
+    }
+    None => w.send_json(code=404, { "error": "Session not found" })
+  }
 }
 
 ///|
 /// Lists the registered tools and whether each one is currently enabled.
 async fn Server::get_tools(self : Server, w : @httpx.ResponseWriter) -> Unit {
-  let tools = self.maria.agent.tools()
-  let tools_json : Map[String, Json] = Map([])
-  for name, tool in tools {
-    tools_json[name] = { "enabled": tool.enabled() }
+  guard self.default_session_id is Some(session_id) else {
+    w.send_json(code=404, { "error": "Session not found" })
   }
-  w.send_json(code=200, Json::object(tools_json))
+  let agent = self.session_manager.get_session_agent(session_id)
+  match agent {
+    Some(a) => {
+      let tools = a.tools()
+      let tools_json : Map[String, Json] = Map([])
+      for name, tool in tools {
+        tools_json[name] = { "enabled": tool.enabled() }
+      }
+      w.send_json(code=200, Json::object(tools_json))
+    }
+    None => w.send_json(code=404, { "error": "Session not found" })
+  }
 }
 
 ///|
@@ -325,11 +340,20 @@ async fn Server::get_system_prompt(
   self : Server,
   w : @httpx.ResponseWriter,
 ) -> Unit {
-  let res : Json = match self.maria.agent.system_prompt() {
-    Some(sys) => sys.to_json()
-    None => Json::null()
+  guard self.default_session_id is Some(session_id) else {
+    w.send_json(code=404, { "error": "Session not found" })
   }
-  w.send_json(code=200, res)
+  let agent = self.session_manager.get_session_agent(session_id)
+  match agent {
+    Some(a) => {
+      let res : Json = match a.system_prompt() {
+        Some(sys) => sys.to_json()
+        None => Json::null()
+      }
+      w.send_json(code=200, res)
+    }
+    None => w.send_json(code=404, { "error": "Session not found" })
+  }
 }
 
 ///|
@@ -354,25 +378,34 @@ async fn Server::send_external_event(
       "Missing 'type' field in request body",
     )
   }
-  let queue = self.maria.agent.external_events()
-  match event_type {
-    "Cancelled" => queue.send(@event.Cancelled)
-    "UserMessage" => {
-      guard json is { "message": String(message), .. } else {
-        raise @httpx.JsonError::new(
-          @status.BadRequest,
-          "Missing 'message' field for UserMessage event",
-        )
-      }
-      queue.send(UserMessage(message))
-    }
-    _ =>
-      raise @httpx.JsonError::new(
-        @status.BadRequest,
-        "Unknown event type: \{event_type}. Expected 'UserMessage' or 'Cancelled'",
-      )
+  guard self.default_session_id is Some(session_id) else {
+    w.send_json(code=404, { "error": "Session not found" })
   }
-  w.send_json(code=200, { "success": true })
+  let agent = self.session_manager.get_session_agent(session_id)
+  match agent {
+    Some(a) => {
+      let queue = a.external_events()
+      match event_type {
+        "Cancelled" => queue.send(@event.Cancelled)
+        "UserMessage" => {
+          guard json is { "message": String(message), .. } else {
+            raise @httpx.JsonError::new(
+              @status.BadRequest,
+              "Missing 'message' field for UserMessage event",
+            )
+          }
+          queue.send(UserMessage(message))
+        }
+        _ =>
+          raise @httpx.JsonError::new(
+            @status.BadRequest,
+            "Unknown event type: \{event_type}. Expected 'UserMessage' or 'Cancelled'",
+          )
+      }
+      w.send_json(code=200, { "success": true })
+    }
+    None => w.send_json(code=404, { "error": "Session not found" })
+  }
 }
 
 ///|
@@ -395,8 +428,17 @@ async fn Server::send_user_message_event(
       "Missing 'message' field in request body",
     )
   }
-  self.maria.agent.external_events().send(UserMessage(message))
-  w.send_json(code=200, { "success": true })
+  guard self.default_session_id is Some(session_id) else {
+    w.send_json(code=404, { "error": "Session not found" })
+  }
+  let agent = self.session_manager.get_session_agent(session_id)
+  match agent {
+    Some(a) => {
+      a.external_events().send(UserMessage(message))
+      w.send_json(code=200, { "success": true })
+    }
+    None => w.send_json(code=404, { "error": "Session not found" })
+  }
 }
 
 ///|
@@ -406,6 +448,182 @@ async fn Server::send_cancellation_event(
   self : Server,
   w : @httpx.ResponseWriter,
 ) -> Unit {
-  self.maria.agent.external_events().send(Cancelled)
-  w.send_json(code=200, { "success": true })
+  guard self.default_session_id is Some(session_id) else {
+    w.send_json(code=404, { "error": "Session not found" })
+  }
+  let agent = self.session_manager.get_session_agent(session_id)
+  match agent {
+    Some(a) => {
+      a.external_events().send(Cancelled)
+      w.send_json(code=200, { "success": true })
+    }
+    None => w.send_json(code=404, { "error": "Session not found" })
+  }
+}
+
+///|
+/// Multi-session global status endpoint.
+async fn Server::get_status(self : Server, w : @httpx.ResponseWriter) -> Unit {
+  let sessions = self.session_manager.list_sessions()
+  let count = sessions.length()
+  let max_sessions = self.config.max_sessions()
+  let active = sessions.filter(s => s.busy).length()
+  w.send_json(code=200, {
+    "sessions": count,
+    "max_sessions": max_sessions,
+    "active": active,
+  })
+}
+
+///|
+/// POST /v1/sessions — creates a new session.
+async fn Server::create_session_handler(
+  self : Server,
+  r : @httpx.RequestReader,
+  w : @httpx.ResponseWriter,
+) -> Unit {
+  let r = @httpx.JsonRequestReader::new(r)
+  let req : @service.CreateRequest = r.read()
+  match self.session_manager.create_session(req) {
+    Success(session_id, agent_id) =>
+      w.send_json(code=200, {
+        "session_id": session_id.to_string(),
+        "agent_id": agent_id.to_string(),
+      })
+    LimitExceeded =>
+      w.send_json(code=429, { "error": "Concurrent limit exceeded" })
+    Failed(msg) => w.send_json(code=500, { "error": msg })
+  }
+}
+
+///|
+/// GET /v1/sessions — lists all sessions.
+async fn Server::list_sessions_handler(
+  self : Server,
+  w : @httpx.ResponseWriter,
+) -> Unit {
+  let sessions = self.session_manager.list_sessions()
+  w.send_json(code=200, sessions.to_json())
+}
+
+///|
+/// GET /v1/sessions/{id} — gets a single session's status.
+async fn Server::get_session_handler(
+  self : Server,
+  r : @httpx.RequestReader,
+  w : @httpx.ResponseWriter,
+) -> Unit {
+  let id_str = r.vars["id"]
+  let session_id : @service.SessionId = @service.SessionId::from_uuid(
+    @uuid.parse(id_str),
+  ) catch {
+    _ => {
+      w.send_json(code=400, { "error": "Invalid session ID format" })
+      return
+    }
+  }
+  match self.session_manager.get_session(session_id) {
+    Some(info) => w.send_json(code=200, info.to_json())
+    None => w.send_json(code=404, { "error": "Session not found" })
+  }
+}
+
+///|
+/// DELETE /v1/sessions/{id} — closes a session.
+async fn Server::close_session_handler(
+  self : Server,
+  r : @httpx.RequestReader,
+  w : @httpx.ResponseWriter,
+) -> Unit {
+  let id_str = r.vars["id"]
+  let session_id : @service.SessionId = @service.SessionId::from_uuid(
+    @uuid.parse(id_str),
+  ) catch {
+    _ => {
+      w.send_json(code=400, { "error": "Invalid session ID format" })
+      return
+    }
+  }
+  try {
+    let _ = self.session_manager.close_session(session_id)
+    w.send_json(code=200, { "success": true })
+  } catch {
+    @service.SessionError::SessionNotFound(_) =>
+      w.send_json(code=404, { "error": "Session not found" })
+    error => raise error
+  }
+}
+
+///|
+/// GET /v1/sessions/{id}/events — SSE event stream for a session.
+async fn Server::get_session_events(
+  self : Server,
+  r : @httpx.RequestReader,
+  w : @httpx.ResponseWriter,
+) -> Unit {
+  let id_str = r.vars["id"]
+  let session_id : @service.SessionId = @service.SessionId::from_uuid(
+    @uuid.parse(id_str),
+  ) catch {
+    _ => {
+      w.send_json(code=400, { "error": "Invalid session ID format" })
+      return
+    }
+  }
+  let broadcast = self.session_manager.get_session_broadcast(session_id)
+  match broadcast {
+    Some(b) => {
+      let agent = self.session_manager.get_session_agent(session_id)
+      match agent {
+        Some(a) => {
+          let w = @httpx.EventStreamWriter::new(w)
+          w.write_header(200)
+          w.write(MariaQueuedMessagesSynchronized(a.queued_messages()))
+          b.listen_forever(event => {
+            if event.desc is (TokenCounted(_) | ContextPruned(_)) {
+              return
+            }
+            w.write(Maria(event))
+            if event.desc is (MessageQueued(_) | MessageUnqueued(_)) {
+              w.write(MariaQueuedMessagesSynchronized(a.queued_messages()))
+            }
+          })
+        }
+        None => w.send_json(code=404, { "error": "Session not found" })
+      }
+    }
+    None => w.send_json(code=404, { "error": "Session not found" })
+  }
+}
+
+///|
+/// POST /v1/sessions/{id}/message — sends a message to a session.
+async fn Server::send_session_message(
+  self : Server,
+  r : @httpx.RequestReader,
+  w : @httpx.ResponseWriter,
+) -> Unit {
+  let id_str = r.vars["id"]
+  let session_id : @service.SessionId = @service.SessionId::from_uuid(
+    @uuid.parse(id_str),
+  ) catch {
+    _ => {
+      w.send_json(code=400, { "error": "Invalid session ID format" })
+      return
+    }
+  }
+  let r = @httpx.JsonRequestReader::new(r)
+  let request : CreateMessageRequest = r.read()
+  try {
+    let _ = self.session_manager.send_message(
+      session_id,
+      request.message,
+      request.web_search.unwrap_or(self.config.default_web_search()),
+    )
+    w.send_json(code=200, { "success": true })
+  } catch {
+    @service.SessionError::SessionNotFound(_) =>
+      w.send_json(code=404, { "error": "Session not found" })
+    error => raise error
+  }
 }

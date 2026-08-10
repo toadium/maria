@@ -58,23 +58,16 @@ test "CreateMessageRequest::from_json" {
 
 ///|
 struct CreateMessageResponse {
+  success : Bool
   id : @uuid.Uuid
   queued : Bool
-}
-
-///|
-pub fn CreateMessageResponse::new(
-  id~ : @uuid.Uuid,
-  queued~ : Bool,
-) -> CreateMessageResponse {
-  CreateMessageResponse::{ id, queued }
 }
 
 ///|
 pub impl ToJson for CreateMessageResponse with fn to_json(
   self : CreateMessageResponse,
 ) -> Json {
-  { "id": self.id, "queued": self.queued }
+  { "success": self.success, "id": self.id, "queued": self.queued }
 }
 
 ///|
@@ -82,20 +75,20 @@ pub impl @json.FromJson for CreateMessageResponse with fn from_json(
   json : Json,
   json_path : @json.JsonPath,
 ) -> CreateMessageResponse raise @json.JsonDecodeError {
-  guard json is { "id": id, "queued": queued, .. } else {
+  guard json is { "success": success, "id": id, "queued": queued, .. } else {
     raise @json.JsonDecodeError(
       (json_path, "Expected JSON object for CreateMessageResponse"),
     )
   }
+  let success : Bool = @json.from_json(success)
   let id : @uuid.Uuid = @json.from_json(id)
   let queued : Bool = @json.from_json(queued)
-  CreateMessageResponse::{ id, queued }
+  CreateMessageResponse::{ success, id, queued }
 }
 
 ///|
-/// Queues a user message for processing and reports whether it started
-/// immediately. The first message in an empty queue begins execution right
-/// away; subsequent ones are enqueued until the agent becomes idle again.
+/// Queues a user message for the default session and reports the resulting
+/// message id. The message is routed through `SessionManager::send_message`.
 async fn Server::create_message(
   self : Server,
   r : @httpx.RequestReader,
@@ -103,11 +96,24 @@ async fn Server::create_message(
 ) -> Unit {
   let r = @httpx.JsonRequestReader::new(r)
   let request : CreateMessageRequest = r.read()
-  let (id, queued) = {
-    let idq = @aqueue.new(kind=Unbounded)
-    self.message_queue.put((request, idq))
-    idq.get()
+  guard self.default_session_id is Some(session_id) else {
+    w.send_json(code=404, { "error": "Session not found" })
   }
-  let response : CreateMessageResponse = CreateMessageResponse::{ id, queued }
-  w.send_json(code=200, response.to_json())
+  try {
+    let msg_id = self.session_manager.send_message(
+      session_id,
+      request.message,
+      request.web_search.unwrap_or(self.config.default_web_search()),
+    )
+    let response : CreateMessageResponse = CreateMessageResponse::{
+      success: true,
+      id: msg_id,
+      queued: false,
+    }
+    w.send_json(code=200, response.to_json())
+  } catch {
+    @service.SessionError::SessionNotFound(_) =>
+      w.send_json(code=404, { "error": "Session not found" })
+    error => raise error
+  }
 }

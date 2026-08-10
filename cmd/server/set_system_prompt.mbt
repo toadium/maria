@@ -27,6 +27,15 @@ async fn Server::set_system_prompt(
     @json.JsonDecodeError(_) as error =>
       raise @httpx.JsonError::from_error(@status.BadRequest, error)
   }
-  self.maria.agent.set_system_prompt(req.0)
-  w.send_json(code=200, Json::empty_object())
+  guard self.default_session_id is Some(session_id) else {
+    w.send_json(code=404, { "error": "Session not found" })
+  }
+  let agent = self.session_manager.get_session_agent(session_id)
+  match agent {
+    Some(a) => {
+      a.set_system_prompt(req.0)
+      w.send_json(code=200, Json::empty_object())
+    }
+    None => w.send_json(code=404, { "error": "Session not found" })
+  }
 }
