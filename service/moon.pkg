@@ -1,0 +1,22 @@
+import {
+  "moonbitlang/maria/agent",
+  "moonbitlang/maria/agentid",
+  "moonbitlang/maria/event",
+  "moonbitlang/maria/internal/broadcast",
+  "moonbitlang/maria/internal/conversation",
+  "moonbitlang/maria/internal/uuid",
+  "moonbitlang/async",
+  "moonbitlang/async/aqueue",
+  "moonbitlang/maria/ai",
+  "moonbitlang/maria/internal/pino",
+  "moonbitlang/maria/internal/rand",
+  "moonbitlang/maria/clock",
+  "moonbitlang/maria/model",
+  "moonbitlang/core/json",
+  "moonbitlang/core/debug",
+}
+
+import {
+  "moonbitlang/core/test",
+  "moonbitlang/maria/internal/mock",
+} for "test"

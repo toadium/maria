@@ -1,0 +1,125 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/maria/service"
+
+import {
+  "moonbitlang/async",
+  "moonbitlang/async/aqueue",
+  "moonbitlang/core/debug",
+  "moonbitlang/core/json",
+  "moonbitlang/maria/agent",
+  "moonbitlang/maria/agentid",
+  "moonbitlang/maria/ai",
+  "moonbitlang/maria/clock",
+  "moonbitlang/maria/event",
+  "moonbitlang/maria/internal/broadcast",
+  "moonbitlang/maria/internal/pino",
+  "moonbitlang/maria/internal/uuid",
+}
+
+// Values
+pub let nil : SessionId
+
+// Errors
+pub suberror SessionError {
+  SessionNotFound(SessionId)
+  ConcurrentLimit
+  SessionAlreadyExists(SessionId)
+} derive(ToJson, @debug.Debug)
+pub impl Show for SessionError
+
+// Types and methods
+pub(all) struct CreateRequest {
+  name : String?
+  system_message : String?
+  web_search : Bool?
+  resume_id : @uuid.Uuid?
+  cwd : String?
+  home : String?
+  model : String?
+} derive(ToJson, @json.FromJson)
+
+pub(all) enum CreateResult {
+  Success(SessionId, @agentid.AgentId)
+  LimitExceeded
+  Failed(String)
+} derive(ToJson, @json.FromJson)
+
+pub struct Session {
+  session_id : SessionId
+  agent : @agent.Agent
+  broadcast : @broadcast.Broadcast[@event.Event]
+  mut task : @async.Task[Unit]?
+  created_at : @clock.Timestamp
+  mut last_active : @clock.Timestamp
+}
+pub fn Session::agent_id(Self) -> @agentid.AgentId
+pub fn Session::close(Self) -> Unit
+pub fn Session::id(Self) -> SessionId
+pub fn Session::is_busy(Self) -> Bool
+
+pub(all) enum SessionCommand {
+  Create(CreateRequest, @aqueue.Queue[CreateResult])
+  Send(SessionId, @ai.Message, Bool, @aqueue.Queue[Bool])
+  Close(SessionId, @aqueue.Queue[Bool])
+  List(@aqueue.Queue[Array[SessionInfo]])
+  Get(SessionId, @aqueue.Queue[SessionInfo?])
+  GetBroadcast(SessionId, @aqueue.Queue[@broadcast.Broadcast[@event.Event]?])
+  Shutdown
+}
+
+pub struct SessionId(@uuid.Uuid) derive(Eq, Hash, @debug.Debug)
+pub fn SessionId::from_uuid(@uuid.Uuid) -> Self
+pub fn SessionId::is_nil(Self) -> Bool
+pub fn[Source : @uuid.Source] SessionId::new(Source) -> Self
+pub fn SessionId::to_string(Self) -> String
+pub fn SessionId::to_uuid(Self) -> @uuid.Uuid
+pub impl Show for SessionId
+pub impl ToJson for SessionId
+pub impl @json.FromJson for SessionId
+
+pub(all) struct SessionInfo {
+  id : SessionId
+  agent_id : @agentid.AgentId
+  busy : Bool
+  created_at : @clock.Timestamp
+  last_active : @clock.Timestamp
+} derive(ToJson, @json.FromJson)
+
+pub struct SessionManager {
+  config : SessionManagerConfig
+  sessions : Map[SessionId, Session]
+  session_queue : @aqueue.Queue[SessionCommand]
+  uuid : @uuid.Generator
+  logger : @pino.Logger
+  clock : &@clock.Clock
+  mut shutdown : Bool
+}
+pub async fn SessionManager::close_session(Self, SessionId) -> Bool
+pub fn SessionManager::command_queue(Self) -> @aqueue.Queue[SessionCommand]
+pub async fn SessionManager::create_session(Self, CreateRequest) -> CreateResult
+pub async fn SessionManager::get_session(Self, SessionId) -> SessionInfo?
+pub async fn SessionManager::get_session_broadcast(Self, SessionId) -> @broadcast.Broadcast[@event.Event]?
+pub async fn SessionManager::list_sessions(Self) -> Array[SessionInfo]
+pub fn SessionManager::new(config~ : SessionManagerConfig, uuid? : @uuid.Generator, logger? : @pino.Logger, clock? : &@clock.Clock) -> Self raise
+pub async fn SessionManager::run(Self) -> Unit
+pub async fn SessionManager::send_message(Self, SessionId, @ai.Message, Bool) -> Bool
+pub fn SessionManager::shutdown(Self) -> Unit
+
+pub struct SessionManagerConfig {
+  max_sessions : Int
+  cwd : String
+  home : String
+  model : String
+  default_web_search : Bool
+} derive(ToJson, @json.FromJson)
+pub fn SessionManagerConfig::cwd(Self) -> String
+pub fn SessionManagerConfig::default_web_search(Self) -> Bool
+pub fn SessionManagerConfig::home(Self) -> String
+pub fn SessionManagerConfig::max_sessions(Self) -> Int
+pub fn SessionManagerConfig::model(Self) -> String
+pub fn SessionManagerConfig::new(cwd~ : String, home~ : String, model~ : String, max_sessions? : Int, default_web_search? : Bool) -> Self
+
+// Type aliases
+
+// Traits
+
