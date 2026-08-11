@@ -46,6 +46,12 @@ pub fn McpTool::new(name~ : String, description~ : String, input_schema~ : @tool
 pub impl @component.Component for McpTool
 pub impl @component.ToolComponent for McpTool
 
+pub struct HttpSseTransport {
+  // private fields
+}
+pub fn HttpSseTransport::new(host? : String = "127.0.0.1", port? : Int = 8080, endpoint? : String = "/mcp") -> Self
+pub impl McpServerTransport for HttpSseTransport
+
 pub struct StdioTransport {
   // private fields
 }

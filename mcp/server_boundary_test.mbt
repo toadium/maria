@@ -108,9 +108,7 @@ async test "mcp/server_handle_request_string_id_defaults_to_zero" (
 ///|
 /// 行为契约：id 为 Null → id 回填 0，method 为具名方法 → 返回 result 占位响应。
 #cfg(all(target="native", not(platform="windows")))
-async test "mcp/server_handle_request_null_id_defaults_to_zero" (
-  t : @test.Test,
-) {
+async test "mcp/server_handle_request_null_id_defaults_to_zero" (t : @test.Test) {
   @mock.run(t, _ => {
     let registry = @component.ComponentRegistry::new()
     let transport = BoundaryMockTransport::new([])
@@ -133,9 +131,7 @@ async test "mcp/server_handle_request_null_id_defaults_to_zero" (
 ///|
 /// 行为契约：request 非 Object（Array）→ id 回填 0，走默认分支 → 返回 error 占位响应。
 #cfg(all(target="native", not(platform="windows")))
-async test "mcp/server_handle_request_non_object_returns_error" (
-  t : @test.Test,
-) {
+async test "mcp/server_handle_request_non_object_returns_error" (t : @test.Test) {
   @mock.run(t, _ => {
     let registry = @component.ComponentRegistry::new()
     let transport = BoundaryMockTransport::new([])
