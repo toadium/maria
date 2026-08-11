@@ -7,7 +7,5 @@ import {
 }
 
 import {
-  "moonbitlang/async",
   "moonbitlang/core/test",
-  "moonbitlang/maria/internal/mock",
 } for "test"

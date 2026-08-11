@@ -54,7 +54,7 @@ pub impl McpServerTransport for HttpSseTransport with fn listen(
 /// P2 预留：返回 async 函数值，内部将 response.stringify() 占位，不实际写 SSE 流。
 /// 后续完整实现时通过 @httpx.EventStreamWriter 写入 SSE 事件流。
 pub impl McpServerTransport for HttpSseTransport with fn send(
-  self : HttpSseTransport,
+  _ : HttpSseTransport,
   response : Json,
 ) -> async (Unit) -> Unit raise McpError {
   _ => {
@@ -68,7 +68,7 @@ pub impl McpServerTransport for HttpSseTransport with fn send(
 /// P2 预留：返回 async 函数值，内部返回 Json::empty_object() 占位，不实际读 HTTP 请求。
 /// 后续完整实现时从 HTTP POST 请求体解析 JSON-RPC 2.0 请求。
 pub impl McpServerTransport for HttpSseTransport with fn receive(
-  self : HttpSseTransport,
+  _ : HttpSseTransport,
 ) -> async (Unit) -> Json raise McpError {
   _ => Json::empty_object()
 }
