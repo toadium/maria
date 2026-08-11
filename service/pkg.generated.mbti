@@ -44,6 +44,22 @@ pub(all) enum CreateResult {
   Failed(String)
 } derive(ToJson, @json.FromJson)
 
+pub struct IdleReaper {
+  // private fields
+}
+pub fn IdleReaper::is_running(Self) -> Bool
+pub fn IdleReaper::new(manager~ : SessionManager, config~ : IdleReaperConfig) -> Self
+pub fn IdleReaper::start(Self) -> async (Unit) -> Unit
+pub fn IdleReaper::stop(Self) -> Unit
+
+pub(all) struct IdleReaperConfig {
+  idle_timeout_ms : Int
+  reap_interval_ms : Int
+} derive(ToJson, @debug.Debug, @json.FromJson)
+pub fn IdleReaperConfig::idle_timeout_ms(Self) -> Int
+pub fn IdleReaperConfig::new(idle_timeout_ms? : Int, reap_interval_ms? : Int) -> Self
+pub fn IdleReaperConfig::reap_interval_ms(Self) -> Int
+
 pub struct Session {
   session_id : SessionId
   agent : @agent.Agent

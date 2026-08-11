@@ -3,6 +3,7 @@ package "moonbitlang/maria/mcp"
 
 import {
   "moonbitlang/core/debug",
+  "moonbitlang/core/json",
   "moonbitlang/maria/component",
   "moonbitlang/maria/internal/spawn",
   "moonbitlang/maria/tool",
@@ -20,6 +21,12 @@ pub suberror McpError {
 pub impl Show for McpError
 
 // Types and methods
+pub struct HttpSseTransport {
+  // private fields
+}
+pub fn HttpSseTransport::new(host? : String, port? : Int, endpoint? : String) -> Self
+pub impl McpServerTransport for HttpSseTransport
+
 pub struct McpClient {
   // private fields
 }
@@ -28,6 +35,12 @@ pub fn McpClient::close(Self) -> Unit
 pub async fn McpClient::initialize(Self) -> Unit raise McpError
 pub async fn McpClient::list_tools(Self) -> Array[McpTool] raise McpError
 pub fn McpClient::new(&McpTransport) -> Self
+
+pub(all) struct McpNotification {
+  method : String
+  params : Json
+} derive(ToJson, @debug.Debug, @json.FromJson)
+pub fn McpNotification::tools_list_changed() -> Self
 
 pub struct McpServer {
   // private fields
@@ -46,17 +59,15 @@ pub fn McpTool::new(name~ : String, description~ : String, input_schema~ : @tool
 pub impl @component.Component for McpTool
 pub impl @component.ToolComponent for McpTool
 
-pub struct HttpSseTransport {
-  // private fields
-}
-pub fn HttpSseTransport::new(host? : String = "127.0.0.1", port? : Int = 8080, endpoint? : String = "/mcp") -> Self
-pub impl McpServerTransport for HttpSseTransport
-
 pub struct StdioTransport {
   // private fields
 }
 pub fn StdioTransport::new(@spawn.InteractiveProcess) -> Self
 pub impl McpTransport for StdioTransport
+
+pub(all) enum ToolCacheChange {
+  ToolsListChanged
+} derive(Eq, ToJson, @debug.Debug, @json.FromJson)
 
 // Type aliases
 
@@ -72,5 +83,9 @@ pub(open) trait McpTransport {
   fn send(Self, Json) -> async (Unit) -> Unit raise McpError
   fn receive(Self) -> async (Unit) -> Json raise McpError
   fn close(Self) -> Unit
+}
+
+pub(open) trait ToolCacheWatcher {
+  fn on_change(Self, ToolCacheChange) -> async (Unit) -> Unit
 }
 
