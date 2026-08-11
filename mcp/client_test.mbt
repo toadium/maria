@@ -9,11 +9,13 @@ struct MockTransport {
 }
 
 ///|
+#warnings("-unused_value")
 fn MockTransport::new(responses : Array[Json]) -> MockTransport {
   MockTransport::{ responses, idx: 0, sent: [] }
 }
 
 ///|
+#warnings("-unused_value")
 impl McpTransport for MockTransport with fn send(
   self : MockTransport,
   request : Json,

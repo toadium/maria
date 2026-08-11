@@ -1,4 +1,5 @@
 ///|
+#warnings("-unused_constructor")
 pub suberror SessionError {
   SessionNotFound(SessionId)
   ConcurrentLimit

@@ -2,6 +2,7 @@
 /// MockServerTransport：内存 transport，用于测试 McpServer 服务端逻辑，不依赖外部进程。
 /// 按 FIFO 顺序返回预设响应，记录发送的响应用于验证协议格式。
 /// 记录是否调用 listen，EOF 时返回 Json::empty_object()（不抛 McpError，因 suberror 变体在 blackbox test 中不可构造）。
+#warnings("-unused_field")
 struct MockServerTransport {
   responses : Array[Json]
   mut idx : Int
@@ -10,11 +11,13 @@ struct MockServerTransport {
 }
 
 ///|
+#warnings("-unused_value")
 fn MockServerTransport::new(responses : Array[Json]) -> MockServerTransport {
   MockServerTransport::{ responses, idx: 0, sent: [], listened: false }
 }
 
 ///|
+#warnings("-unused_value")
 impl McpServerTransport for MockServerTransport with fn listen(
   self : MockServerTransport,
 ) -> async (Unit) -> Unit raise McpError {

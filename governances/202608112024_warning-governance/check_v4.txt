@@ -1,0 +1,26 @@
+Warning: Main package `moonbitlang/maria/cmd/test-to-be-killed` uses blackbox-only test inputs (`_test.mbt` files, `.mbt.md` files) in package directory "D:\CodeWorkspace\forMoonbitMaria\maria\cmd\test-to-be-killed". Main packages will stop generating blackbox tests in a future release. Move public behavior into a non-main package and keep the main package as an entrypoint.
+Error: failed to run command
+Caused by:
+    program not found
+Warning: [0035]
+    鈺攢[ D:\CodeWorkspace\forMoonbitMaria\maria\mcp\tool_cache.mbt:37:3 ]
+    鈹? 37 鈹?  method : String
+    鈹?  鈹€鈹€鈹€鈹攢鈹€  
+    鈹?     鈺扳攢鈹€鈹€鈹€ Warning (reserved_keyword): The word `method` is reserved for possible future use. Please consider using another name.
+鈹€鈹€鈹€鈹€鈺?Warning: [0035]
+    鈺攢[ D:\CodeWorkspace\forMoonbitMaria\maria\mcp\tool_cache.mbt:47:5 ]
+    鈹? 47 鈹?    method: "notifications/tools/list_changed",
+    鈹?    鈹€鈹€鈹€鈹攢鈹€  
+    鈹?       鈺扳攢鈹€鈹€鈹€ Warning (reserved_keyword): The word `method` is reserved for possible future use. Please consider using another name.
+鈹€鈹€鈹€鈹€鈺?Warning: [0035]
+     鈺攢[ D:\CodeWorkspace\forMoonbitMaria\maria\mcp\tool_cache_extra_test.mbt:147:7 ]
+     鈹? 147 鈹?      method: "notifications/resources/updated",
+     鈹?      鈹€鈹€鈹€鈹攢鈹€  
+     鈹?         鈺扳攢鈹€鈹€鈹€ Warning (reserved_keyword): The word `method` is reserved for possible future use. Please consider using another name.
+鈹€鈹€鈹€鈹€鈹€鈺?Warning: [0035]
+     鈺攢[ D:\CodeWorkspace\forMoonbitMaria\maria\mcp\tool_cache_extra_test.mbt:180:7 ]
+     鈹? 180 鈹?      method: "notifications/custom",
+     鈹?      鈹€鈹€鈹€鈹攢鈹€  
+     鈹?         鈺扳攢鈹€鈹€鈹€ Warning (reserved_keyword): The word `method` is reserved for possible future use. Please consider using another name.
+鈹€鈹€鈹€鈹€鈹€鈺?Failed with 4 warnings, 0 errors.
+Error: failed when checking project

@@ -27,6 +27,7 @@ test "service/session_id_to_string" {
 }
 
 ///|
+#warnings("-deprecated")
 test "service/session_id_to_json_from_json" {
   let id = SessionId::new(@rand.chacha8())
   let roundtripped : SessionId = @json.from_json(id.to_json())

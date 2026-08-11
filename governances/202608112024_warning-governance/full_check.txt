@@ -1,0 +1,146 @@
+Warning: Main package `moonbitlang/maria/cmd/test-to-be-killed` uses blackbox-only test inputs (`_test.mbt` files, `.mbt.md` files) in package directory "D:\CodeWorkspace\forMoonbitMaria\maria\cmd\test-to-be-killed". Main packages will stop generating blackbox tests in a future release. Move public behavior into a non-main package and keep the main package as an entrypoint.
+Error: failed to run command
+Caused by:
+    program not found
+Warning: [0007]
+    鈺攢[ D:\CodeWorkspace\forMoonbitMaria\maria\agent\agent.mbt:65:8 ]
+    鈹? 65 鈹?  priv registry : @component.ComponentRegistry
+    鈹?       鈹€鈹€鈹€鈹€鈹攢鈹€鈹€  
+    鈹?           鈺扳攢鈹€鈹€鈹€鈹€ Warning (unused_field): Field 'registry' is never read
+鈹€鈹€鈹€鈹€鈺?Warning: [0001]
+    鈺攢[ D:\CodeWorkspace\forMoonbitMaria\maria\mcp\client_test.mbt:12:19 ]
+    鈹? 12 鈹?fn MockTransport::new(responses : Array[Json]) -> MockTransport {
+    鈹?                  鈹€鈹攢  
+    鈹?                   鈺扳攢鈹€鈹€ Warning (unused_value): Unused function 'new'
+鈹€鈹€鈹€鈹€鈺?Warning: [0001]
+    鈺攢[ D:\CodeWorkspace\forMoonbitMaria\maria\mcp\client_test.mbt:17:45 ]
+    鈹? 17 鈹?impl McpTransport for MockTransport with fn send(
+    鈹?                                            鈹€鈹€鈹攢  
+    鈹?                                              鈺扳攢鈹€鈹€ Warning (unused_value): Unused trait implementation
+鈹€鈹€鈹€鈹€鈺?Warning: [0007]
+    鈺攢[ D:\CodeWorkspace\forMoonbitMaria\maria\mcp\http_sse_transport.mbt:24:8 ]
+    鈹? 24 鈹?  priv host : String
+    鈹?       鈹€鈹€鈹攢  
+    鈹?         鈺扳攢鈹€鈹€ Warning (unused_field): Field 'host' is never read
+鈹€鈹€鈹€鈹€鈺?Warning: [0007]
+    鈺攢[ D:\CodeWorkspace\forMoonbitMaria\maria\mcp\http_sse_transport.mbt:25:8 ]
+    鈹? 25 鈹?  priv port : Int
+    鈹?       鈹€鈹€鈹攢  
+    鈹?         鈺扳攢鈹€鈹€ Warning (unused_field): Field 'port' is never read
+鈹€鈹€鈹€鈹€鈺?Warning: [0007]
+    鈺攢[ D:\CodeWorkspace\forMoonbitMaria\maria\mcp\http_sse_transport.mbt:26:8 ]
+    鈹? 26 鈹?  priv endpoint : String
+    鈹?       鈹€鈹€鈹€鈹€鈹攢鈹€鈹€  
+    鈹?           鈺扳攢鈹€鈹€鈹€鈹€ Warning (unused_field): Field 'endpoint' is never read
+鈹€鈹€鈹€鈹€鈺?Warning: [0007]
+    鈺攢[ D:\CodeWorkspace\forMoonbitMaria\maria\mcp\http_sse_transport.mbt:27:12 ]
+    鈹? 27 鈹?  priv mut closed : Bool
+    鈹?           鈹€鈹€鈹€鈹攢鈹€  
+    鈹?              鈺扳攢鈹€鈹€鈹€ Warning (unused_field): Field 'closed' is never read
+鈹€鈹€鈹€鈹€鈺?Warning: [0007]
+    鈺攢[ D:\CodeWorkspace\forMoonbitMaria\maria\mcp\server.mbt:34:8 ]
+    鈹? 34 鈹?  priv registry : @component.ComponentRegistry
+    鈹?       鈹€鈹€鈹€鈹€鈹攢鈹€鈹€  
+    鈹?           鈺扳攢鈹€鈹€鈹€鈹€ Warning (unused_field): Field 'registry' is never read
+鈹€鈹€鈹€鈹€鈺?Warning: [0007]
+    鈺攢[ D:\CodeWorkspace\forMoonbitMaria\maria\mcp\server.mbt:36:12 ]
+    鈹? 36 鈹?  priv mut next_id : Int
+    鈹?           鈹€鈹€鈹€鈹攢鈹€鈹€  
+    鈹?              鈺扳攢鈹€鈹€鈹€鈹€ Warning (unused_field): Field 'next_id' is never read
+鈹€鈹€鈹€鈹€鈺?Warning: [0007]
+    鈺攢[ D:\CodeWorkspace\forMoonbitMaria\maria\mcp\server_boundary_test.mbt:14:7 ]
+    鈹? 14 鈹?  mut listened : Bool
+    鈹?      鈹€鈹€鈹€鈹€鈹攢鈹€鈹€  
+    鈹?          鈺扳攢鈹€鈹€鈹€鈹€ Warning (unused_field): Field 'listened' is never read
+鈹€鈹€鈹€鈹€鈺?Warning: [0001]
+    鈺攢[ D:\CodeWorkspace\forMoonbitMaria\maria\mcp\server_boundary_test.mbt:18:27 ]
+    鈹? 18 鈹?fn BoundaryMockTransport::new(responses : Array[Json]) -> BoundaryMockTransport {
+    鈹?                          鈹€鈹攢  
+    鈹?                           鈺扳攢鈹€鈹€ Warning (unused_value): Unused function 'new'
+鈹€鈹€鈹€鈹€鈺?Warning: [0001]
+    鈺攢[ D:\CodeWorkspace\forMoonbitMaria\maria\mcp\server_boundary_test.mbt:23:59 ]
+    鈹? 23 鈹?impl McpServerTransport for BoundaryMockTransport with fn listen(
+    鈹?                                                          鈹€鈹€鈹€鈹攢鈹€  
+    鈹?                                                             鈺扳攢鈹€鈹€鈹€ Warning (unused_value): Unused trait implementation
+鈹€鈹€鈹€鈹€鈺?Warning: [0007]
+   鈺攢[ D:\CodeWorkspace\forMoonbitMaria\maria\mcp\server_test.mbt:9:7 ]
+   鈹? 9 鈹?  mut listened : Bool
+   鈹?      鈹€鈹€鈹€鈹€鈹攢鈹€鈹€  
+   鈹?          鈺扳攢鈹€鈹€鈹€鈹€ Warning (unused_field): Field 'listened' is never read
+鈹€鈹€鈹€鈺?Warning: [0001]
+    鈺攢[ D:\CodeWorkspace\forMoonbitMaria\maria\mcp\server_test.mbt:13:25 ]
+    鈹? 13 鈹?fn MockServerTransport::new(responses : Array[Json]) -> MockServerTransport {
+    鈹?                        鈹€鈹攢  
+    鈹?                         鈺扳攢鈹€鈹€ Warning (unused_value): Unused function 'new'
+鈹€鈹€鈹€鈹€鈺?Warning: [0001]
+    鈺攢[ D:\CodeWorkspace\forMoonbitMaria\maria\mcp\server_test.mbt:18:57 ]
+    鈹? 18 鈹?impl McpServerTransport for MockServerTransport with fn listen(
+    鈹?                                                        鈹€鈹€鈹€鈹攢鈹€  
+    鈹?                                                           鈺扳攢鈹€鈹€鈹€ Warning (unused_value): Unused trait implementation
+鈹€鈹€鈹€鈹€鈺?Warning: [0035]
+    鈺攢[ D:\CodeWorkspace\forMoonbitMaria\maria\mcp\tool_cache.mbt:36:3 ]
+    鈹? 36 鈹?  method : String
+    鈹?  鈹€鈹€鈹€鈹攢鈹€  
+    鈹?     鈺扳攢鈹€鈹€鈹€ Warning (reserved_keyword): The word `method` is reserved for possible future use. Please consider using another name.
+鈹€鈹€鈹€鈹€鈺?Warning: [0035]
+    鈺攢[ D:\CodeWorkspace\forMoonbitMaria\maria\mcp\tool_cache.mbt:46:5 ]
+    鈹? 46 鈹?    method: "notifications/tools/list_changed",
+    鈹?    鈹€鈹€鈹€鈹攢鈹€  
+    鈹?       鈺扳攢鈹€鈹€鈹€ Warning (reserved_keyword): The word `method` is reserved for possible future use. Please consider using another name.
+鈹€鈹€鈹€鈹€鈺?Warning: [0001]
+    鈺攢[ D:\CodeWorkspace\forMoonbitMaria\maria\mcp\tool_cache_extra_test.mbt:16:21 ]
+    鈹? 16 鈹?fn CountingWatcher::new() -> CountingWatcher {
+    鈹?                    鈹€鈹攢  
+    鈹?                     鈺扳攢鈹€鈹€ Warning (unused_value): Unused function 'new'
+鈹€鈹€鈹€鈹€鈺?Warning: [0001]
+    鈺攢[ D:\CodeWorkspace\forMoonbitMaria\maria\mcp\tool_cache_extra_test.mbt:21:51 ]
+    鈹? 21 鈹?impl ToolCacheWatcher for CountingWatcher with fn on_change(
+    鈹?                                                  鈹€鈹€鈹€鈹€鈹攢鈹€鈹€鈹€  
+    鈹?                                                      鈺扳攢鈹€鈹€鈹€鈹€鈹€ Warning (unused_value): Unused trait implementation
+鈹€鈹€鈹€鈹€鈺?Warning: [0035]
+     鈺攢[ D:\CodeWorkspace\forMoonbitMaria\maria\mcp\tool_cache_extra_test.mbt:144:7 ]
+     鈹? 144 鈹?      method: "notifications/resources/updated",
+     鈹?      鈹€鈹€鈹€鈹攢鈹€  
+     鈹?         鈺扳攢鈹€鈹€鈹€ Warning (reserved_keyword): The word `method` is reserved for possible future use. Please consider using another name.
+鈹€鈹€鈹€鈹€鈹€鈺?Warning: [0035]
+     鈺攢[ D:\CodeWorkspace\forMoonbitMaria\maria\mcp\tool_cache_extra_test.mbt:176:7 ]
+     鈹? 176 鈹?      method: "notifications/custom",
+     鈹?      鈹€鈹€鈹€鈹攢鈹€  
+     鈹?         鈺扳攢鈹€鈹€鈹€ Warning (reserved_keyword): The word `method` is reserved for possible future use. Please consider using another name.
+鈹€鈹€鈹€鈹€鈹€鈺?Warning: [0001]
+   鈺攢[ D:\CodeWorkspace\forMoonbitMaria\maria\mcp\tool_cache_test.mbt:8:17 ]
+   鈹? 8 鈹?fn MockWatcher::new() -> MockWatcher {
+   鈹?                鈹€鈹攢  
+   鈹?                 鈺扳攢鈹€鈹€ Warning (unused_value): Unused function 'new'
+鈹€鈹€鈹€鈺?Warning: [0001]
+    鈺攢[ D:\CodeWorkspace\forMoonbitMaria\maria\mcp\tool_cache_test.mbt:13:47 ]
+    鈹? 13 鈹?impl ToolCacheWatcher for MockWatcher with fn on_change(
+    鈹?                                              鈹€鈹€鈹€鈹€鈹攢鈹€鈹€鈹€  
+    鈹?                                                  鈺扳攢鈹€鈹€鈹€鈹€鈹€ Warning (unused_value): Unused trait implementation
+鈹€鈹€鈹€鈹€鈺?Warning: [0006]
+   鈺攢[ D:\CodeWorkspace\forMoonbitMaria\maria\service\command.mbt:4:3 ]
+   鈹? 4 鈹?  ConcurrentLimit
+   鈹?  鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹攢鈹€鈹€鈹€鈹€鈹€鈹€  
+   鈹?         鈺扳攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€ Warning (unused_constructor): Variant 'ConcurrentLimit' is never constructed
+鈹€鈹€鈹€鈺?Warning: [0006]
+   鈺攢[ D:\CodeWorkspace\forMoonbitMaria\maria\service\command.mbt:5:3 ]
+   鈹? 5 鈹?  SessionAlreadyExists(SessionId)
+   鈹?  鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€  
+   鈹?            鈺扳攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€ Warning (unused_constructor): Variant 'SessionAlreadyExists' is never constructed
+鈹€鈹€鈹€鈺?Warning: [0007]
+    鈺攢[ D:\CodeWorkspace\forMoonbitMaria\maria\service\idle_reaper.mbt:49:8 ]
+    鈹? 49 鈹?  priv manager : SessionManager
+    鈹?       鈹€鈹€鈹€鈹攢鈹€鈹€  
+    鈹?          鈺扳攢鈹€鈹€鈹€鈹€ Warning (unused_field): Field 'manager' is never read
+鈹€鈹€鈹€鈹€鈺?Warning: [0007]
+    鈺攢[ D:\CodeWorkspace\forMoonbitMaria\maria\service\idle_reaper.mbt:50:8 ]
+    鈹? 50 鈹?  priv config : IdleReaperConfig
+    鈹?       鈹€鈹€鈹€鈹攢鈹€  
+    鈹?          鈺扳攢鈹€鈹€鈹€ Warning (unused_field): Field 'config' is never read
+鈹€鈹€鈹€鈹€鈺?Warning: [0020]
+    鈺攢[ D:\CodeWorkspace\forMoonbitMaria\maria\service\service_test.mbt:37:11 ]
+    鈹? 37 鈹?  inspect(fixed.to_json(), content="72212911-64d1-c441-e87d-de89b955ea34")
+    鈹?          鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹攢鈹€鈹€鈹€鈹€鈹€鈹€  
+    鈹?                 鈺扳攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€ Warning (deprecated): Use Debug instead of Show for debugging purposes. See https://github.com/moonbitlang/core/blob/main/debug/README.mbt.md
+鈹€鈹€鈹€鈹€鈺?Failed with 28 warnings, 0 errors.
+Error: failed when checking project

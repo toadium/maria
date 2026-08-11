@@ -37,6 +37,7 @@ pub impl @json.FromJson for QueuedMessage with fn from_json(
 /// including conversation history, available tools, model configuration, and event
 /// handling. It manages the conversation loop, token counting, context pruning,
 /// and tool execution.
+#warnings("-unused_field")
 pub(all) struct Agent {
   /// UUID generator for creating unique identifiers.
   uuid : @uuid.Generator

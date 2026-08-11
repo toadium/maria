@@ -30,6 +30,7 @@ pub(open) trait McpServerTransport {
 ///
 /// P2 预留：handle_request/serve 为骨架实现，不实际调用 registry 工具。
 /// 后续可实现具体请求处理逻辑（R22 工具缓存动态变更）。
+#warnings("-unused_field")
 pub struct McpServer {
   priv registry : @component.ComponentRegistry
   priv transport : &McpServerTransport

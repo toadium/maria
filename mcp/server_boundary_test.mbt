@@ -7,6 +7,7 @@
 
 ///|
 /// 边界测试用 MockServerTransport，仅用于构造 McpServer，不参与测试逻辑。
+#warnings("-unused_field")
 struct BoundaryMockTransport {
   responses : Array[Json]
   mut idx : Int
@@ -15,11 +16,13 @@ struct BoundaryMockTransport {
 }
 
 ///|
+#warnings("-unused_value")
 fn BoundaryMockTransport::new(responses : Array[Json]) -> BoundaryMockTransport {
   BoundaryMockTransport::{ responses, idx: 0, sent: [], listened: false }
 }
 
 ///|
+#warnings("-unused_value")
 impl McpServerTransport for BoundaryMockTransport with fn listen(
   self : BoundaryMockTransport,
 ) -> async (Unit) -> Unit raise McpError {

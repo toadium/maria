@@ -1,6 +1,5 @@
 import {
   "moonbitlang/maria/trace",
-
   "moonbitlang/maria/component",
   "moonbitlang/maria/agentid",
   "moonbitlang/maria/internal/uuid",

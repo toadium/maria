@@ -20,6 +20,7 @@
 /// P2 预留：listen/send/receive/close 为骨架实现，不实际启动 HTTP 服务 / 写入 SSE 流 / 解析 HTTP 请求。
 /// 后续完整实现时：(a) listen 内部启动 @httpx.Server 监听 host:port；(b) receive 内部从 HTTP POST 请求体解析 JSON-RPC 请求；
 /// (c) send 内部通过 @httpx.EventStreamWriter 写入 SSE 事件流；(d) close 内部关闭 HTTP 服务。
+#warnings("-unused_field")
 pub struct HttpSseTransport {
   priv host : String
   priv port : Int

@@ -32,10 +32,15 @@ pub(open) trait ToolCacheWatcher {
 ///
 /// 持有 method + params 字段，用于表示 MCP 服务端发送的通知消息。
 /// tools_list_changed 构造方法返回 notifications/tools/list_changed 通知。
+/// 字段 method_ 在 JSON 中映射为 "method"（JSON-RPC 2.0 协议标准字段名）。
 pub(all) struct McpNotification {
-  method : String
+  method_ : String
   params : Json
-} derive(ToJson, FromJson, Debug)
+} derive (
+  ToJson(fields(method_(rename="method"))),
+  FromJson(fields(method_(rename="method"))),
+  Debug,
+)
 
 ///|
 /// 构造 notifications/tools/list_changed 通知（工具列表变更通知）。
@@ -43,7 +48,7 @@ pub(all) struct McpNotification {
 /// 返回 McpNotification，method 硬编码 "notifications/tools/list_changed"，params 为空对象（无参数）。
 pub fn McpNotification::tools_list_changed() -> McpNotification {
   McpNotification::{
-    method: "notifications/tools/list_changed",
+    method_: "notifications/tools/list_changed",
     params: Json::empty_object(),
   }
 }

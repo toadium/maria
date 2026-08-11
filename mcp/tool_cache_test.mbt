@@ -5,11 +5,13 @@ struct MockWatcher {
 }
 
 ///|
+#warnings("-unused_value")
 fn MockWatcher::new() -> MockWatcher {
   MockWatcher::{ changes: [] }
 }
 
 ///|
+#warnings("-unused_value")
 impl ToolCacheWatcher for MockWatcher with fn on_change(
   self : MockWatcher,
   change : ToolCacheChange,
@@ -48,7 +50,10 @@ async test "mcp/tool_cache_watcher_trait_object_storable" (t : @test.Test) {
 async test "mcp/mcp_notification_construct" (t : @test.Test) {
   @mock.run(t, _ => {
     let notification = McpNotification::tools_list_changed()
-    inspect(notification.method, content="\"notifications/tools/list_changed\"")
+    inspect(
+      notification.method_,
+      content="\"notifications/tools/list_changed\"",
+    )
     json_inspect(notification.params, content=Json::empty_object())
   })
 }
@@ -60,7 +65,10 @@ async test "mcp/mcp_notification_serialize" (t : @test.Test) {
     let notification = McpNotification::tools_list_changed()
     let json = notification.to_json()
     let roundtripped : McpNotification = @json.from_json(json)
-    inspect(roundtripped.method, content="\"notifications/tools/list_changed\"")
+    inspect(
+      roundtripped.method_,
+      content="\"notifications/tools/list_changed\"",
+    )
     json_inspect(roundtripped.params, content=Json::empty_object())
     json_inspect(json, content={
       "method": "notifications/tools/list_changed",

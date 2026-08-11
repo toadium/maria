@@ -1,0 +1,6 @@
+Warning: Main package `moonbitlang/maria/cmd/test-to-be-killed` uses blackbox-only test inputs (`_test.mbt` files, `.mbt.md` files) in package directory "D:\CodeWorkspace\forMoonbitMaria\maria\cmd\test-to-be-killed". Main packages will stop generating blackbox tests in a future release. Move public behavior into a non-main package and keep the main package as an entrypoint.
+Error: failed to run command
+Caused by:
+    program not found
+Failed with 0 warnings, 0 errors.
+Error: failed when checking project

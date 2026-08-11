@@ -13,11 +13,13 @@ struct CountingWatcher {
 }
 
 ///|
+#warnings("-unused_value")
 fn CountingWatcher::new() -> CountingWatcher {
   CountingWatcher::{ changes: [], call_count: 0 }
 }
 
 ///|
+#warnings("-unused_value")
 impl ToolCacheWatcher for CountingWatcher with fn on_change(
   self : CountingWatcher,
   change : ToolCacheChange,
@@ -141,10 +143,10 @@ async test "mcp/mcp_notification_custom_construct" (t : @test.Test) {
     // 手动构造带非空 params 的通知
     let params : Json = { "updated_tools": ["tool_a", "tool_b"] }
     let notification = McpNotification::{
-      method: "notifications/resources/updated",
+      method_: "notifications/resources/updated",
       params,
     }
-    inspect(notification.method, content="\"notifications/resources/updated\"")
+    inspect(notification.method_, content="\"notifications/resources/updated\"")
     json_inspect(notification.params, content={
       "updated_tools": ["tool_a", "tool_b"],
     })
@@ -158,9 +160,9 @@ async test "mcp/mcp_notification_tools_list_changed_consistent" (t : @test.Test)
   @mock.run(t, _ => {
     let n1 = McpNotification::tools_list_changed()
     let n2 = McpNotification::tools_list_changed()
-    inspect(n1.method, content="\"notifications/tools/list_changed\"")
-    inspect(n2.method, content="\"notifications/tools/list_changed\"")
-    inspect(n1.method == n2.method, content="true")
+    inspect(n1.method_, content="\"notifications/tools/list_changed\"")
+    inspect(n2.method_, content="\"notifications/tools/list_changed\"")
+    inspect(n1.method_ == n2.method_, content="true")
     json_inspect(n1.params, content=Json::empty_object())
     json_inspect(n2.params, content=Json::empty_object())
   })
@@ -173,12 +175,12 @@ async test "mcp/mcp_notification_custom_serialize_roundtrip" (t : @test.Test) {
   @mock.run(t, _ => {
     let params : Json = { "count": 3, "tools": ["a", "b", "c"] }
     let notification = McpNotification::{
-      method: "notifications/custom",
+      method_: "notifications/custom",
       params,
     }
     let json = notification.to_json()
     let roundtripped : McpNotification = @json.from_json(json)
-    inspect(roundtripped.method, content="\"notifications/custom\"")
+    inspect(roundtripped.method_, content="\"notifications/custom\"")
     json_inspect(roundtripped.params, content={
       "count": 3,
       "tools": ["a", "b", "c"],
@@ -199,7 +201,7 @@ async test "mcp/mcp_notification_debug_format" (t : @test.Test) {
     // Debug 输出包含 struct 名 + 字段
     inspect(
       notification,
-      content="McpNotification::{method: \"notifications/tools/list_changed\", params: {}}",
+      content="McpNotification::{method_: \"notifications/tools/list_changed\", params: {}}",
     )
   })
 }

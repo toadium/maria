@@ -45,6 +45,7 @@ pub fn IdleReaperConfig::reap_interval_ms(self : IdleReaperConfig) -> Int {
 ///
 /// P2 预留：start/stop/is_running 为骨架实现，不实际 spawn 周期 task / 扫描 sessions / 回收空闲会话。
 /// 后续完整实现时：(a) start 内部 @async task spawn 周期 task（@async.sleep(reap_interval_ms) → list_sessions → 过滤 last_active + idle_timeout_ms < now → close_session）+ 幂等守卫；(b) stop 内部设 running = false + 定时 task 自动退出。
+#warnings("-unused_field")
 pub struct IdleReaper {
   priv manager : SessionManager
   priv config : IdleReaperConfig
