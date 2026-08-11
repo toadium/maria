@@ -72,3 +72,10 @@ pub(open) trait AgentRouter {
   fn route(Self, @agentid.AgentId, @ai.Message) -> async (Unit) -> Unit
 }
 
+pub(open) trait AgentTeam {
+  fn members(Self) -> Array[@agentid.AgentId]
+  fn add_member(Self, @agentid.AgentId) -> Unit
+  fn remove_member(Self, @agentid.AgentId) -> Unit
+  fn broadcast(Self, @ai.Message) -> async (Unit) -> Unit
+}
+
