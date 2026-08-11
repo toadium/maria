@@ -19,6 +19,70 @@ public abstract class Notification {
     }
 
     /**
+     * Notification sent when a tool is added to the agent.
+     */
+    public static class ToolAdded extends Notification {
+        @SerializedName("params")
+        private ToolAddedParams params;
+
+        public ToolAddedParams getParams() {
+            return params;
+        }
+
+        public void setParams(ToolAddedParams params) {
+            this.params = params;
+        }
+    }
+
+    /**
+     * Parameters for ToolAdded notification.
+     */
+    public static class ToolAddedParams {
+        @SerializedName("tool")
+        private JsonElement tool;
+
+        public JsonElement getTool() {
+            return tool;
+        }
+
+        public void setTool(JsonElement tool) {
+            this.tool = tool;
+        }
+    }
+
+    /**
+     * Notification sent when a user message is added.
+     */
+    public static class UserMessage extends Notification {
+        @SerializedName("params")
+        private UserMessageParams params;
+
+        public UserMessageParams getParams() {
+            return params;
+        }
+
+        public void setParams(UserMessageParams params) {
+            this.params = params;
+        }
+    }
+
+    /**
+     * Parameters for UserMessage notification.
+     */
+    public static class UserMessageParams {
+        @SerializedName("message")
+        private JsonElement message;
+
+        public JsonElement getMessage() {
+            return message;
+        }
+
+        public void setMessage(JsonElement message) {
+            this.message = message;
+        }
+    }
+
+    /**
      * Notification sent when a conversation starts.
      */
     public static class ConversationStart extends Notification {
@@ -38,6 +102,29 @@ public abstract class Notification {
      * Parameters for ConversationStart notification.
      */
     public static class ConversationStartParams {
+        // Empty params for now
+    }
+
+    /**
+     * Notification sent when a conversation ends.
+     */
+    public static class ConversationEnd extends Notification {
+        @SerializedName("params")
+        private ConversationEndParams params;
+
+        public ConversationEndParams getParams() {
+            return params;
+        }
+
+        public void setParams(ConversationEndParams params) {
+            this.params = params;
+        }
+    }
+
+    /**
+     * Parameters for ConversationEnd notification.
+     */
+    public static class ConversationEndParams {
         // Empty params for now
     }
 

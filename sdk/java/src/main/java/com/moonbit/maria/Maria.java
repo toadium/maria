@@ -180,12 +180,18 @@ public class Maria implements Iterable<Notification> {
 
                 Notification notification;
                 switch (method) {
+                    case "maria.agent.tool_added" ->
+                        notification = gson.fromJson(nextLine, Notification.ToolAdded.class);
+                    case "maria.agent.message" ->
+                        notification = gson.fromJson(nextLine, Notification.UserMessage.class);
+                    case "maria.agent.conversation_start" ->
+                        notification = gson.fromJson(nextLine, Notification.ConversationStart.class);
+                    case "maria.agent.conversation_end" ->
+                        notification = gson.fromJson(nextLine, Notification.ConversationEnd.class);
                     case "maria.agent.request_completed" ->
                         notification = gson.fromJson(nextLine, Notification.RequestCompleted.class);
                     case "maria.agent.post_tool_call" ->
                         notification = gson.fromJson(nextLine, Notification.PostToolCall.class);
-                    case "maria.agent.conversation_start" ->
-                        notification = gson.fromJson(nextLine, Notification.ConversationStart.class);
                     default -> throw new RuntimeException("Unknown notification method: " + method);
                 }
 

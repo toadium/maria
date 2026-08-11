@@ -4,7 +4,35 @@ from openai.types.completion_usage import CompletionUsage
 from openai.types.chat.chat_completion_message_tool_call import (
     ChatCompletionMessageToolCall,
 )
-from typing import Union, Literal, Any, Annotated
+from typing import Union, Literal, Any, Annotated, Dict
+
+
+class ToolAddedParams(pydantic.BaseModel):
+    tool: Dict[str, Any]
+
+
+class ToolAdded(pydantic.BaseModel):
+    method: Literal["maria.agent.tool_added"]
+    params: ToolAddedParams
+
+
+class UserMessageParams(pydantic.BaseModel):
+    message: Dict[str, Any]
+
+
+class UserMessage(pydantic.BaseModel):
+    method: Literal["maria.agent.message"]
+    params: UserMessageParams
+
+
+class ConversationStart(pydantic.BaseModel):
+    method: Literal["maria.agent.conversation_start"]
+    params: Dict[str, Any] = pydantic.Field(default_factory=dict)
+
+
+class ConversationEnd(pydantic.BaseModel):
+    method: Literal["maria.agent.conversation_end"]
+    params: Dict[str, Any] = pydantic.Field(default_factory=dict)
 
 
 class RequestCompletedParams(pydantic.BaseModel):
@@ -29,7 +57,15 @@ class PostToolCall(pydantic.BaseModel):
 
 
 Notification = Annotated[
-    Union[RequestCompleted, PostToolCall], pydantic.Field(discriminator="method")
+    Union[
+        ToolAdded,
+        UserMessage,
+        ConversationStart,
+        ConversationEnd,
+        RequestCompleted,
+        PostToolCall,
+    ],
+    pydantic.Field(discriminator="method"),
 ]
 
 notification = pydantic.TypeAdapter(Notification)
