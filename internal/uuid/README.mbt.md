@@ -64,8 +64,14 @@ pub fn Uuid::version(self : Uuid) -> Version?
 
 ///|
 pub impl ToJson for Uuid
+
+///|
 pub impl @json.FromJson for Uuid
+
+///|
 pub impl Show for Uuid
+
+///|
 pub impl @debug.Debug for Uuid
 ```
 

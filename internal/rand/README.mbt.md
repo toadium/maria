@@ -12,7 +12,11 @@
 ```mbt nocheck
 ///|
 let random_bytes = @rand.bytes(32)
+
+///|
 let rng = @rand.chacha8()
+
+///|
 let n = rng.uint64()
 ```
 

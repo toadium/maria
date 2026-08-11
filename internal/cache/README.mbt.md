@@ -14,6 +14,8 @@ let messages : ArrayView[@openai.ChatCompletionMessageParam] = [
   @openai.user_message(content="Hello"),
   @openai.assistant_message(content="Hi there"),
 ]
+
+///|
 let cached = @cache.cache_messages(messages)
 ```
 

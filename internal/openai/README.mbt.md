@@ -41,7 +41,7 @@ struct Weather : @openai.Structural {
 } derive(ToJson)
 
 ///|
-let result : Weather = @openai.data(model~, prompt~="Get weather for Beijing")
+let result : Weather = @openai.data(model~, prompt="Get weather for Beijing")
 ```
 
 ## API Reference
