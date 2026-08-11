@@ -1,4 +1,19 @@
 ///|
+/// ReMe 理念对齐（AgentScope 2.0 记忆系统）：
+///
+/// (a) 记忆文件为源数据：`{home}/.moonagent/conversations/{id}.json` 是会话记忆的权威数据源，
+///     所有真相查询以文件为准（见 Manager::load / Manager::list 实现）。
+/// (b) 索引为派生状态：Manager.cache LRU 缓存 + Manager::list 目录扫描为派生索引，
+///     可由源数据重建（见 Manager::load 缓存未命中时从文件读取并回填缓存）。
+/// (c) 索引失效语义：save 后缓存可能不一致，后续读取以文件为准，缓存仅作加速
+///     （见 Manager::save 不更新缓存，下次 load 缓存未命中时从文件重建）。
+/// (d) 索引重建扩展点：未来 ReMe 增量索引/跨会话检索/语义索引经 ReMeIndex trait 扩展，
+///     不破坏文件为源原则（见 reme.mbt ReMeIndex trait 定义）。
+/// (e) 与 AgentScope 2.0 ReMe 对齐：记忆系统作为 Agent 长期记忆基础，
+///     会话记忆为短期记忆，未来扩展长期记忆/向量检索为 P2 扩展点。
+///
+
+///|
 using @path {type Path}
 
 ///|

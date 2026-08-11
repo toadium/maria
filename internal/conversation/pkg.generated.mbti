@@ -42,4 +42,9 @@ pub async fn Manager::save(Self, Conversation) -> Unit
 // Type aliases
 
 // Traits
+pub(open) trait ReMeIndex {
+  fn rebuild(Self) -> async (Unit) -> Unit
+  fn invalidate(Self, @uuid.Uuid) -> Unit
+  fn lookup(Self, String) -> Array[@uuid.Uuid]
+}
 
