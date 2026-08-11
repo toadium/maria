@@ -51,14 +51,14 @@ test "skill_component_name" {
 }
 
 ///|
-/// Component::version 返回 "0.1.0"
+/// Component::version 返回 "0.2.0"
 test "skill_component_version" {
   let skill = @skills.Skill::new(
     name="test-skill",
     description="desc",
     location="/loc",
   )
-  inspect(@component.Component::version(skill), content="0.1.0")
+  inspect(@component.Component::version(skill), content="0.2.0")
 }
 
 ///|
@@ -199,7 +199,7 @@ test "skill_component_methods_consistent" {
     location="/loc",
   )
   inspect(@component.Component::name(skill), content="consistency-skill")
-  inspect(@component.Component::version(skill), content="0.1.0")
+  inspect(@component.Component::version(skill), content="0.2.0")
   json_inspect(@component.Component::enabled(skill), content=true)
   json_inspect(
     @component.Component::component_type(skill) ==

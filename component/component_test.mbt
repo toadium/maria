@@ -292,7 +292,7 @@ test "tool_component_version" {
     schema=@tool.JsonSchema::from_json({ "type": "object" }),
     @tool.ToolFn(_ => @tool.success("ok")),
   )
-  inspect(Component::version(tool), content="0.1.0")
+  inspect(Component::version(tool), content="0.2.0")
 }
 
 ///|

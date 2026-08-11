@@ -125,7 +125,7 @@ async test "mcp/tool_component_traits" (t : @test.Test) {
       @component.ComponentType::Tool,
     )
     assert_eq(@component.Component::name(tool), "test_tool")
-    assert_eq(@component.Component::version(tool), "0.1.0")
+    assert_eq(@component.Component::version(tool), "0.2.0")
     assert_eq(@component.Component::enabled(tool), true)
     let execute_fn = @component.ToolComponent::execute(tool)
     let result = execute_fn(({ "x": 1 } : Json))

@@ -25,10 +25,10 @@ test "prompt_template_component_type" {
 }
 
 ///|
-/// Component::version 返回 "0.1.0"
+/// Component::version 返回 "0.2.0"
 test "prompt_template_component_version" {
   let pt = @prompt.PromptTemplate::new(template="hello")
-  inspect(@component.Component::version(pt), content="0.1.0")
+  inspect(@component.Component::version(pt), content="0.2.0")
 }
 
 ///|
@@ -204,7 +204,7 @@ test "prompt_template_component_methods_independent" {
   let pt = @prompt.PromptTemplate::new(template="t", name="n")
   inspect(@component.Component::name(pt), content="n")
   inspect(pt.template(), content="t")
-  inspect(@component.Component::version(pt), content="0.1.0")
+  inspect(@component.Component::version(pt), content="0.2.0")
   json_inspect(@component.Component::enabled(pt), content=true)
   json_inspect(
     @component.Component::component_type(pt) == @component.ComponentType::Prompt,

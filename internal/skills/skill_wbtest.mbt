@@ -559,7 +559,7 @@ test "skill_component_trait_whitebox" {
     content=true,
   )
   inspect(@component.Component::name(skill), content="wb-skill")
-  inspect(@component.Component::version(skill), content="0.1.0")
+  inspect(@component.Component::version(skill), content="0.2.0")
   json_inspect(
     @component.Component::input_schema(skill) ==
     @tool.JsonSchema(Json::empty_object()),

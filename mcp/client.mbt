@@ -21,7 +21,7 @@ pub async fn McpClient::initialize(self : McpClient) -> Unit raise McpError {
     "params": {
       "protocolVersion": "2024-11-05",
       "capabilities": Json::empty_object(),
-      "clientInfo": { "name": "maria", "version": "0.1.0" },
+      "clientInfo": { "name": "maria", "version": "0.2.0" },
     },
   }
   try {

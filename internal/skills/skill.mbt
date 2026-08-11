@@ -154,8 +154,7 @@ pub fn Skill::new(
 
 ///|
 /// Skill 实现 Component trait，暴露技能组件元信息。
-/// version 硬编码 "0.1.0"（当前模块版本，moon.mod 中 version = "0.1.0"）。
-/// R24 版本升级至 0.2.0 时此处须同步更新，避免版本号遗漏。
+/// version 硬编码 "0.2.0"（当前模块版本，moon.mod 中 version = "0.2.0"）。
 pub impl @component.Component for Skill with fn component_type(self) {
   ignore(self)
   @component.ComponentType::Skill
@@ -169,7 +168,7 @@ pub impl @component.Component for Skill with fn name(self) {
 ///|
 pub impl @component.Component for Skill with fn version(self) {
   ignore(self)
-  "0.1.0"
+  "0.2.0"
 }
 
 ///|
