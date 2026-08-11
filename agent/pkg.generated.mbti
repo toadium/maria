@@ -68,4 +68,7 @@ pub fn Tool::enabled(Self) -> Bool
 // Type aliases
 
 // Traits
+pub(open) trait AgentRouter {
+  fn route(Self, @agentid.AgentId, @ai.Message) -> async (Unit) -> Unit
+}
 
