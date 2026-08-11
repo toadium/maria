@@ -21,14 +21,11 @@ test "CreateMessageResponse::to_json_format" {
     id: msg_id,
     queued: false,
   }
-  json_inspect(
-    response.to_json(),
-    content={
-      "success": true,
-      "id": "72212911-64d1-c441-e87d-de89b955ea34",
-      "queued": false,
-    },
-  )
+  json_inspect(response.to_json(), content={
+    "success": true,
+    "id": "72212911-64d1-c441-e87d-de89b955ea34",
+    "queued": false,
+  })
 }
 
 ///|

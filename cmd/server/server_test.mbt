@@ -110,7 +110,11 @@ async test "POST /v1/message" (t : @test.Test) {
     mock.group.spawn_bg(() => server.start(), no_wait=true)
     let (r, b) = @http.get("http://localhost:\{server.port()}/v1/status")
     json_inspect(r.code, content=200)
-    json_inspect(b.json(), content={ "sessions": 1, "max_sessions": 16, "active": 0 })
+    json_inspect(b.json(), content={
+      "sessions": 1,
+      "max_sessions": 16,
+      "active": 0,
+    })
     let (r, b) = @httpx.post_json(
       "http://localhost:\{server.port()}/v1/message",
       { "message": { "role": "user", "content": "Hello, Maria!" } },
@@ -316,7 +320,11 @@ async test "POST /v1/cancel" (t : @test.Test) {
       })
       let (r, b) = @http.get("http://localhost:\{server.port()}/v1/status")
       json_inspect(r.code, content=200)
-      json_inspect(b.json(), content={ "sessions": 1, "max_sessions": 16, "active": 0 })
+      json_inspect(b.json(), content={
+        "sessions": 1,
+        "max_sessions": 16,
+        "active": 0,
+      })
       let (r, b) = @httpx.post_json(
         "http://localhost:\{server.port()}/v1/message",
         { "message": { "role": "user", "content": "Hello, Maria!" } },
@@ -504,7 +512,11 @@ async test "GET /v1/external-event/user-message" (t : @test.Test) {
     mock.group.spawn_bg(() => server.start(), no_wait=true)
     let (r, b) = @http.get("http://localhost:\{server.port()}/v1/status")
     json_inspect(r.code, content=200)
-    json_inspect(b.json(), content={ "sessions": 1, "max_sessions": 16, "active": 0 })
+    json_inspect(b.json(), content={
+      "sessions": 1,
+      "max_sessions": 16,
+      "active": 0,
+    })
     let (r, b) = @httpx.post_json(
       "http://localhost:\{server.port()}/v1/external-event/user-message",
       { "message": "Hello, Maria!" },
@@ -535,7 +547,11 @@ async test "GET /v1/external-event/cancel" (t : @test.Test) {
     })
     let (r, b) = @http.get("http://localhost:\{server.port()}/v1/status")
     json_inspect(r.code, content=200)
-    json_inspect(b.json(), content={ "sessions": 1, "max_sessions": 16, "active": 0 })
+    json_inspect(b.json(), content={
+      "sessions": 1,
+      "max_sessions": 16,
+      "active": 0,
+    })
     let (r, b) = @httpx.post_json(
       "http://localhost:\{server.port()}/v1/message",
       {

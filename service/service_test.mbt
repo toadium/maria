@@ -928,7 +928,9 @@ async test "service/manager_send_message_returns_uuid" (t : @test.Test) {
 }
 
 ///|
-async test "service/manager_create_session_empty_model_uses_default" (t : @test.Test) {
+async test "service/manager_create_session_empty_model_uses_default" (
+  t : @test.Test,
+) {
   @mock.run(t, mock => {
     let _ = mock.model(name=ClaudeHaiku4_5)
     let config = SessionManagerConfig::new(
@@ -968,7 +970,9 @@ async test "service/manager_create_session_empty_model_uses_default" (t : @test.
 }
 
 ///|
-async test "service/manager_create_session_empty_model_in_request" (t : @test.Test) {
+async test "service/manager_create_session_empty_model_in_request" (
+  t : @test.Test,
+) {
   @mock.run(t, mock => {
     let model = mock.model(name=ClaudeHaiku4_5)
     let config = SessionManagerConfig::new(
