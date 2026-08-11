@@ -39,6 +39,14 @@
 
 - 全仓库 `moon check` 通过：0 errors, 0 warnings
 - `McpNotification.method` 字段重命名为 `method_`，通过 `derive(ToJson(fields(method_(rename = "method"))))` 保持 JSON-RPC 协议兼容
+- Main 包 README.mbt.md 重命名为 README.md，消除 blackbox-test-in-main-package 警告
+
+### 文档治理
+
+- 全仓库 84 个 MoonBit 包均配备 README 文档（README.mbt.md 或 README.md）
+- 每个包含：Overview、Usage 示例、API Reference（含签名）、Integration 说明
+- 修复 6 个存根 README.md → 复制完整内容
+- `moon fmt` 格式化全部文档代码块
 
 ## [0.1.0] - Initial Release
 
