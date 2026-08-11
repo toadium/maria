@@ -13,9 +13,9 @@ fn VerifierMockTeam::new() -> VerifierMockTeam {
 }
 
 ///|
-impl AgentTeam for VerifierMockTeam with fn members(
-  self : VerifierMockTeam,
-) -> Array[@agentid.AgentId] {
+impl AgentTeam for VerifierMockTeam with fn members(self : VerifierMockTeam) -> Array[
+  @agentid.AgentId,
+] {
   let result : Array[@agentid.AgentId] = []
   for m in self.members {
     result.push(m)

@@ -29,6 +29,13 @@ pub async fn McpClient::initialize(Self) -> Unit raise McpError
 pub async fn McpClient::list_tools(Self) -> Array[McpTool] raise McpError
 pub fn McpClient::new(&McpTransport) -> Self
 
+pub struct McpServer {
+  // private fields
+}
+pub fn McpServer::handle_request(Self, Json) -> Json
+pub fn McpServer::new(registry~ : @component.ComponentRegistry, transport~ : &McpServerTransport) -> Self
+pub fn McpServer::serve(Self) -> async (Unit) -> Unit raise McpError
+
 pub struct McpTool {
   name : String
   description : String
@@ -48,6 +55,13 @@ pub impl McpTransport for StdioTransport
 // Type aliases
 
 // Traits
+pub(open) trait McpServerTransport {
+  fn listen(Self) -> async (Unit) -> Unit raise McpError
+  fn send(Self, Json) -> async (Unit) -> Unit raise McpError
+  fn receive(Self) -> async (Unit) -> Json raise McpError
+  fn close(Self) -> Unit
+}
+
 pub(open) trait McpTransport {
   fn send(Self, Json) -> async (Unit) -> Unit raise McpError
   fn receive(Self) -> async (Unit) -> Json raise McpError
