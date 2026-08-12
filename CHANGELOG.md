@@ -1,5 +1,14 @@
 # Changelog
 
+## [Unreleased]
+
+### 文档优化
+
+- 修复 README.md 中 Agent-as-a-Service 描述重复文本 bug
+- 扩充 README.md 为大型项目模板（Quick Start、Project Structure、SDK、Development、Documentation、License）
+- 同步 README.mbt.md 与 README.md 内容
+- 优化 ui/vsc-ext 和 ui/native README 文档
+
 ## [0.2.0] - 2026-08-11
 
 升级为参考 [AgentScope 2.0](https://github.com/alibaba/agentscope) 框架的 MoonBit Agent 框架。
@@ -47,6 +56,34 @@
 - 每个包含：Overview、Usage 示例、API Reference（含签名）、Integration 说明
 - 修复 6 个存根 README.md → 复制完整内容
 - `moon fmt` 格式化全部文档代码块
+
+### SDK 更新
+
+- Python / Node.js / Java SDK 版本号同步至 0.2.0
+- 补全 4 种缺失事件类型（ToolAdded, UserMessage, ConversationStart, ConversationEnd）
+- Java Maria.java switch 语句覆盖全部 6 种事件
+
+### FIXME 缺陷修复
+
+- **ContextPruned 事件**: 仅在实际发生修剪时触发（之前即使未修剪也会触发）
+- **TokenCounted 文档**: 澄清多次触发是预期行为
+- **daemon TaskLock**: 记录单线程异步运行时下 semaphore 足够
+- **daemon lock_daemon_file**: 记录 public 可见性为测试需要
+- **daemon spawn_task**: 澄清 cleanup 在取消时运行、no_wait 用于并发监听
+- **agent web search**: FIXME→TODO（功能增强）
+- **agent uuid**: 记录上游限制的 workaround
+
+### 性能优化
+
+- **context_pruner O(n²) → O(n)**: 用增量跟踪替代全量重算 — 预计算占位符 token 数，每条消息仅计算 `original - placeholder` 增量
+- **json2xml**: 更新数组处理注释为设计决策说明
+
+### 测试覆盖率提升
+
+- **internal/token_counter**: 10 个白盒测试（count_string, count_message, calibrate EMA/钳位, apply_calibration）
+- **internal/readline/csi**: 2 个黑盒测试（csi 函数 + 常量验证）
+- **tools/apply_patch**: 14 个黑盒测试（parse_patch 全路径 + 错误用例 + ApplyResult::summary）
+- **internal/openai/responses**: 17 个黑盒测试（ContentType/ContentPart/ResponseInputItem/ResponseItem ToJson/FromJson + message_input + function_call_output + ResponsesRequest）
 
 ## [0.1.0] - Initial Release
 

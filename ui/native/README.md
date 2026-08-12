@@ -1,24 +1,33 @@
 # Maria Electron
 
-under `ui/native`:
+Electron 桌面客户端，为 MoonBit Agent (maria) 提供原生跨平台 GUI。
 
-```
+## Prerequisites
+
+- [Node.js](https://nodejs.org/) >= 18
+- [pnpm](https://pnpm.io/)
+
+## Development
+
+```bash
 pnpm i
 ```
 
-## How to dev
+在两个终端中并行运行：
 
-run following commands in parallel:
-
-```
-pnpm watch
-pnpm dev
+```bash
+pnpm watch    # 监听编译
+pnpm dev      # 启动 Electron 开发模式
 ```
 
-## How to build
+## Build
 
-```
+```bash
 pnpm package
 ```
 
-The output will be in `ui/native/out` folder.
+打包输出位于 `ui/native/out` 目录。
+
+## See Also
+
+- [maria 主仓库](../../README.md)
