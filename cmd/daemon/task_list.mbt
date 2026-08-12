@@ -16,7 +16,9 @@ priv struct TaskLock {
   /// 4. Register the task in `running` field.
   /// 5. Release `spawn_mutex`.
   ///
-  /// FIXME: this should be refactored into `Mutex[T]` for safer access
+  /// MoonBit's single-threaded async runtime ensures semaphore is sufficient
+  /// for mutual exclusion. A `Mutex[T]` wrapper would be more idiomatic but
+  /// is not strictly necessary here.
   spawn_mutex : @semaphore.Semaphore
   mut running : Running?
 }

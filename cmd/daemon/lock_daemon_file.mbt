@@ -27,8 +27,8 @@
 ///    that after the lock is released, the new owner is still not us. In that
 ///    case, we give up and exit.
 ///
-/// FIXME: Make this private. This function is currently marked as public
-/// because it is used by `cmd/test-to-be-killed` for testing.
+/// This function is public because it is used by `cmd/test-to-be-killed`
+/// for testing. In production, it is only called from `cmd/daemon`.
 pub async fn lock_daemon_file(home~ : StringView) -> @fs.File? {
   let path = Path::join(home.to_owned(), ".moonagent")
     .join("daemon.json")

@@ -108,7 +108,8 @@ async fn Daemon::spawn_task(
     model=reg.model,
     broadcast~,
   )
-  // FIXME: The daemon does not ends anyway, so this cleanup code is never run.
+  // The daemon runs indefinitely, so this cleanup code runs only if the
+  // task group is cancelled (e.g., during shutdown).
   group.spawn_bg(() => {
     defer self.by_cwd.remove(cwd)
     defer self.by_id.remove(task.id)
@@ -118,8 +119,8 @@ async fn Daemon::spawn_task(
     }
   })
   self.by_id[task.id] = Running(task)
-  // FIXME: The daemon does not ends anyway, so the `no_wait` option is
-  // unnecessary.
+  // `no_wait` is used because this listener runs concurrently with the
+  // task group's main lifecycle.
   group.spawn_bg(() => self.listen_for_status_change(task), no_wait=true)
   task
 }

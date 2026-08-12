@@ -144,13 +144,15 @@ async fn Agent::prepare_messages_for_request(
     agent.emit(Pruned(id=event_id))
   }
 
-  // Emit ContextPruned event with before/after token counts
-  agent.emit(
-    ContextPruned(
-      origin_token_count=prune_result.origin_token_count,
-      pruned_token_count=prune_result.pruned_token_count,
-    ),
-  )
+  // Emit ContextPruned event only when actual pruning occurred
+  if prune_result.pruned_ids.length() > 0 {
+    agent.emit(
+      ContextPruned(
+        origin_token_count=prune_result.origin_token_count,
+        pruned_token_count=prune_result.pruned_token_count,
+      ),
+    )
+  }
 
   // Get messages from conversation (respects newly emitted Pruned events)
   let messages = agent.history.messages(include_system=true)
@@ -285,8 +287,8 @@ pub async fn Agent::start(agent : Agent) -> Unit {
         if web_search {
           // We only support web search plugin for OpenRouter models for now.
           //
-          // FIXME: We should encode how to enable web search plugin in model
-          // configuration.
+          // TODO: Encode how to enable web search plugin in model
+          // configuration instead of hardcoding OpenRouter detection.
           if agent.model.base_url.contains("openrouter.ai/api/v1") {
             extra_body["plugins"] = [{ "id": "web" }]
           } else {
@@ -470,7 +472,8 @@ pub async fn new(
     Some(home) => home.to_owned()
     None => @os.home()
   }
-  // FIXME:(upstream) function with error not allowed in optional expression
+  // Workaround for upstream limitation: function with error not allowed in
+  // optional expression, so we use match instead of unwrap_or.
   let uuid = match uuid {
     Some(uuid) => uuid
     None => @uuid.generator(@rand.chacha8())

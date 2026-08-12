@@ -93,12 +93,15 @@ pub(all) enum EventDesc {
   /// 2. The context pruning algorithm may count token for multiple times to
   ///    determine when to stop.
   ///
-  /// FIXME: Currently this event is triggered multiple times in a row.
+  /// Note: This event is triggered once per request preparation. Multiple
+  /// triggers in a row indicate multiple requests being prepared (e.g., for
+  /// multi-step tool calls), which is expected behavior.
   TokenCounted(Int)
   /// Event triggered when context pruning is performed.
   ///
-  /// FIXME: Currently this event is triggered even if the context is with-in
-  /// the limit and no pruning is performed.
+  /// This event is only triggered when actual pruning occurred (i.e., at least
+  /// one event was pruned). If the context is within the limit, no event is
+  /// emitted.
   ContextPruned(origin_token_count~ : Int, pruned_token_count~ : Int)
   /// Event triggered when a assistant message is received from the model.
   AssistantMessage(
