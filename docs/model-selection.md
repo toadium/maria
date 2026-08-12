@@ -1,4 +1,10 @@
-# Model Selection
+# 模型选择
+
+> Maria 支持三种模型提供商，各有不同的认证方式和可用模型。
+
+📚 **导航**：[docs/](.) · [任务事件](events.md) · [HTTP 端点](http.md) · [核心类型](types.md)
+
+---
 
 Maria supports three model providers, each with different authentication methods and available models. This document explains how to select models and the fallback behavior when no model is explicitly specified.
 

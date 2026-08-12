@@ -1,11 +1,31 @@
-# HTTP and SSE endpoints used by the UI
+# HTTP and SSE 端点
 
-The core React UI (`ui/core`) communicates with the daemon via plain HTTP and
-Server‑Sent Events (SSE). The canonical usage lives in
-`ui/core/src/features/api/apiSlice.ts`.
+> UI 与 Daemon 之间的 HTTP / SSE 通信接口定义。
 
-All requests are prefixed with a base URL stored in the Redux `urlSlice`.
-Below we describe just the paths and payload shapes as seen from the UI.
+📚 **导航**：[docs/](.) · [任务事件](events.md) · [核心类型](types.md) · [模型选择](model-selection.md)
+
+---
+
+## 概述
+
+核心 React UI（`ui/core`）通过 HTTP 和 SSE（Server-Sent Events）与 daemon 通信。  
+规范用法见 `ui/core/src/features/api/apiSlice.ts`。
+
+所有请求以 Redux `urlSlice` 中存储的 base URL 为前缀。  
+下文仅描述路径和负载结构（从 UI 视角）。
+
+## 端点一览
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| `GET` | `/task/:id` | 获取任务概览 |
+| `POST` | `/task` | 创建新任务 |
+| `POST` | `/task/:id/message` | 发送消息 |
+| `POST` | `/task/:id/cancel` | 取消正在进行的生成 |
+| `GET` | `/events` | Daemon 级 SSE（任务列表同步） |
+| `GET` | `/task/:id/events` | 任务级 SSE（会话事件流） |
+
+---
 
 ## `GET /task/:id`
 

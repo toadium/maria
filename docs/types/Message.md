@@ -1,5 +1,7 @@
 # `Message`
 
+> ⬅️ [返回类型列表](../types.md)
+
 Conversation messages are modeled slightly differently in the UI and daemon,
 but both sides agree on an OpenAI‑style JSON shape at the HTTP / SSE
 boundaries.

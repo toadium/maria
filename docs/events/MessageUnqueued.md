@@ -1,5 +1,7 @@
 # `MessageUnqueuedEvent`
 
+> ⬅️ [返回事件列表](../events.md)
+
 TypeScript: [`ui/core/src/lib/types.ts`](../../ui/core/src/lib/types.ts#L51)
 
 ```ts

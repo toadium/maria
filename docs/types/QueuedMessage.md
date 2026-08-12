@@ -1,5 +1,7 @@
 # `QueuedMessage`
 
+> ⬅️ [返回类型列表](../types.md)
+
 `QueuedMessage` is not part of the public API between the UI and daemon, but is
 used both internally by the UI and daemon to model queued messages.
 
