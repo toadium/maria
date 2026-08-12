@@ -18,20 +18,9 @@ fn json2xml(json : Json, indent? : Int = 0, output : Array[String]) -> Unit {
         output.push(" ".repeat(indent) + "</\{key}>")
       }
     Array(array) =>
-      // TODO: it might be not correct to just output array items directly, but
-      // for now this is much more readable than:
-      //
-      // ```xml
-      // <item>
-      //   ...
-      // </item>
-      // <item>
-      //   ...
-      // </item>
-      // ...
-      // ```
-      //
-      // so we keep it as is.
+      // Array items are output directly without <item> wrapper tags.
+      // This is more readable than wrapping each item in <item>...</item>
+      // and is sufficient for the tool-call argument display use case.
       for item in array {
         json2xml(item, indent~, output)
       }

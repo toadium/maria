@@ -58,6 +58,14 @@ pub async fn Pruner::prune_messages(
   }
   let mut pruned_tokens = tokens // current state
   let pruned_index = []
+  // Pre-compute placeholder message token count (constant for all cleared messages).
+  // count_message only counts content parts, not tool_call_id, so this is the same
+  // regardless of which tool message is being cleared.
+  let placeholder_msg = @openai.tool_message(
+    content=ClearedToolOutputPlaceholder,
+    tool_call_id="",
+  )
+  let placeholder_tokens = pruner.token_counter.count_message(placeholder_msg)
   let prune_goal_met = for i, message in messages {
     match message {
       Tool(tool) => {
@@ -65,13 +73,15 @@ pub async fn Pruner::prune_messages(
           // Already cleared, skip
           continue
         }
+        // Count original message tokens before replacing (O(1) per message)
+        let original_tokens = pruner.token_counter.count_message(message)
         messages[i] = @openai.tool_message(
           content=ClearedToolOutputPlaceholder,
           tool_call_id=tool.tool_call_id,
         )
         pruned_index.push(i)
-        // TODO: this is O(n^2), optimize by tracking deltas
-        pruned_tokens = pruner.token_counter.count_param(messages~, tools~)
+        // Update token count using delta: O(1) instead of O(n) full recount
+        pruned_tokens -= original_tokens - placeholder_tokens
         if pruned_tokens <= pruner.safe_zone_tokens {
           break true
         }
