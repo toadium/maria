@@ -3,8 +3,3 @@ import {
   "moonbitlang/maria/internal/openai",
   "moonbitlang/maria/internal/pino",
 }
-
-import {
-  "moonbitlang/maria/internal/mock",
-  "moonbitlang/async",
-} for "wbtest"
