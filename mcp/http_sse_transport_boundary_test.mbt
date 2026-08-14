@@ -78,7 +78,7 @@ async test "mcp/http_sse_transport_send_various_json_responses" (t : @test.Test)
 #cfg(all(target="native", not(platform="windows")))
 async test "mcp/http_sse_transport_listen_close_listen_cycle" (t : @test.Test) {
   @mock.run(t, _ => {
-    let transport = HttpSseTransport::new()
+    let transport = HttpSseTransport::new(port=0)
     // 初始 listen（设 closed = false）
     let listen_fn1 = McpServerTransport::listen(transport)
     listen_fn1(())
@@ -105,7 +105,7 @@ async test "mcp/http_sse_transport_close_then_all_methods_callable" (
   t : @test.Test,
 ) {
   @mock.run(t, _ => {
-    let transport = HttpSseTransport::new()
+    let transport = HttpSseTransport::new(port=0)
     McpServerTransport::close(transport)
     // close 后 listen（重置 closed = false）
     let listen_fn = McpServerTransport::listen(transport)
@@ -155,7 +155,7 @@ async test "mcp/http_sse_transport_receive_returns_object_type" (t : @test.Test)
 async test "mcp/http_sse_transport_with_mcp_server_serve" (t : @test.Test) {
   @mock.run(t, _ => {
     let registry = @component.ComponentRegistry::new()
-    let transport = HttpSseTransport::new()
+    let transport = HttpSseTransport::new(port=0)
     let server = McpServer::new(registry~, transport~)
     // serve 调用：listen → receive → handle_request → send
     let serve_fn = McpServer::serve(server)

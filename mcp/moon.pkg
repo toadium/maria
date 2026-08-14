@@ -1,6 +1,7 @@
 import {
   "moonbitlang/maria/component",
   "moonbitlang/maria/internal/spawn",
+  "moonbitlang/maria/internal/httpx",
   "moonbitlang/maria/tool",
   "moonbitlang/core/json",
   "moonbitlang/core/debug",

@@ -1,15 +1,13 @@
 ///|
-/// 多会话空闲超时与自动回收（AgentScope 2.0 Scalable Deployment 资源回收扩展点预留）。
+/// 多会话空闲超时与自动回收（AgentScope 2.0 Scalable Deployment 资源回收）。
 ///
-/// P2 预留：仅 struct 定义 + 骨架方法 + 构造函数 + 注释 + mock 测试，
-/// 不实现具体定时器/扫描逻辑（后续实现时添加）。
+/// R23 实现：IdleReaper 持有 SessionManager 引用 + Clock 引用 + 配置 + running 守卫。
+/// start 方法启动周期性扫描循环：sleep(reap_interval_ms) → list_sessions →
+/// 过滤 last_active + idle_timeout_ms < now → close_session(id)。
+/// stop 方法设 running = false，循环自动退出。
 ///
-/// 参考 AgentScope 2.0 多会话空闲超时与自动回收，
-/// 自动回收路径骨架：周期性扫描 sessions → last_active + idle_timeout_ms < now → close_session(id)。
-/// 本步仅定义抽象类型 + 骨架方法不实现具体定时器/扫描逻辑，
-/// 后续完整实现时复用 @async task spawn 周期 task + SessionManager::list_sessions + SessionManager::close_session。
-///
-/// 本步不引入 @async.sleep/@clock.Clock 新依赖以保持 P2 预留最小化（IdleReaper::start 骨架仅设 running = true 占位，不实际 spawn task）。
+/// 注意：start 返回的 async 函数会阻塞直到 stop 被调用，
+/// 调用方应在独立 task 中运行 start（如 spawn_bg）。
 
 ///|
 /// 空闲超时与自动回收配置。
@@ -41,41 +39,65 @@ pub fn IdleReaperConfig::reap_interval_ms(self : IdleReaperConfig) -> Int {
 }
 
 ///|
-/// 空闲超时与自动回收器骨架，持有 SessionManager 引用 + 配置 + running 幂等守卫。
-///
-/// P2 预留：start/stop/is_running 为骨架实现，不实际 spawn 周期 task / 扫描 sessions / 回收空闲会话。
-/// 后续完整实现时：(a) start 内部 @async task spawn 周期 task（@async.sleep(reap_interval_ms) → list_sessions → 过滤 last_active + idle_timeout_ms < now → close_session）+ 幂等守卫；(b) stop 内部设 running = false + 定时 task 自动退出。
+/// 空闲超时与自动回收器，持有 SessionManager 引用 + Clock 引用 + 配置 + running 守卫。
 #warnings("-unused_field")
 pub struct IdleReaper {
   priv manager : SessionManager
   priv config : IdleReaperConfig
+  priv clock : &@clock.Clock
   priv mut running : Bool
 }
 
 ///|
-/// 构造 IdleReaper，持有 SessionManager 引用 + IdleReaperConfig 配置，running 初始为 false。
+/// 构造 IdleReaper，持有 SessionManager 引用 + IdleReaperConfig 配置 + Clock 引用，running 初始为 false。
 pub fn IdleReaper::new(
   manager~ : SessionManager,
   config~ : IdleReaperConfig,
+  clock~ : &@clock.Clock,
 ) -> IdleReaper {
-  IdleReaper::{ manager, config, running: false }
+  IdleReaper::{ manager, config, clock, running: false }
 }
 
 ///|
-/// 启动自动回收循环（骨架预留）。
+/// 启动自动回收循环。
 ///
-/// P2 预留：返回 async 函数值，内部仅设 running = true 占位，不实际 spawn 周期 task。
-/// 后续完整实现时 spawn @async 周期 task 执行扫描 + 回收。
+/// 返回 async 函数值，内部循环：sleep(reap_interval_ms) → list_sessions →
+/// 过滤空闲会话 → close_session。stop 设 running=false 后循环退出。
+///
+/// 注意：此函数会阻塞直到 stop 被调用，应在独立 task 中运行。
 pub fn IdleReaper::start(self : IdleReaper) -> async (Unit) -> Unit {
-  _ => self.running = true
+  _ => {
+    self.running = true
+    for ;; {
+      if not(self.running) {
+        break
+      }
+      @async.sleep(self.config.reap_interval_ms)
+      if not(self.running) {
+        break
+      }
+      try {
+        let sessions = self.manager.list_sessions()
+        let now = self.clock.now()
+        for session in sessions {
+          let idle_ms = now.ms_since(session.last_active)
+          if idle_ms > self.config.idle_timeout_ms {
+            ignore(self.manager.close_session(session.id)) catch {
+              _ => ()
+            }
+          }
+        }
+      } catch {
+        _ => ()
+      }
+    }
+  }
 }
 
 ///|
 /// 停止自动回收循环（幂等守卫）。
 ///
-/// 同步方法，设 self.running = false。
-/// P2 预留：不实际停止定时 task，仅设标志位。
-/// 后续完整实现时设 running = false + 定时 task 自动退出。
+/// 设 self.running = false，start 循环在下一次迭代时退出。
 pub fn IdleReaper::stop(self : IdleReaper) -> Unit {
   self.running = false
 }

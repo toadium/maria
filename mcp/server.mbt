@@ -46,14 +46,14 @@ pub fn McpServer::new(
 }
 
 ///|
-/// 处理 JSON-RPC 2.0 请求（骨架预留）。
+/// 处理 JSON-RPC 2.0 请求。
 ///
-/// P2 预留：match method 字段三具名分支 + 默认分支，
-/// initialize/tools/list/tools/call 三分支返回 result 占位响应（Json::empty_object()），
-/// 默认分支返回 error 占位响应（code: -32601, message: "method not found"，符合 JSON-RPC 2.0 协议惯例），
-/// 不实际调用 registry 工具。
+/// R20 实现：
+/// - initialize: 返回协议版本 + server info
+/// - tools/list: 从 ComponentRegistry 获取工具列表
+/// - tools/call: 返回提示信息（实际执行需 async 上下文，见 serve 方法）
+/// - 其他: 返回 method not found 错误（code: -32601，符合 JSON-RPC 2.0）
 pub fn McpServer::handle_request(self : McpServer, request : Json) -> Json {
-  let _ = self
   let request_id : Json = match request {
     Json::Object(obj) =>
       match obj.get("id") {
@@ -73,15 +73,30 @@ pub fn McpServer::handle_request(self : McpServer, request : Json) -> Json {
           let response : Json = {
             "jsonrpc": "2.0",
             "id": request_id,
-            "result": Json::empty_object(),
+            "result": {
+              "protocolVersion": "2024-11-05",
+              "serverInfo": { "name": "maria", "version": "0.2.0" },
+            },
           }
           response
         }
         Some(String("tools/list")) => {
+          let tool_names = self.registry.list_by_type(
+            ctype=@component.ComponentType::Tool,
+          )
+          let tools_json : Array[Json] = tool_names.map(fn(name) {
+            match self.registry.get(name) {
+              Some(component) => {
+                let schema = component.input_schema()
+                { "name": name, "inputSchema": schema }
+              }
+              None => { "name": name }
+            }
+          })
           let response : Json = {
             "jsonrpc": "2.0",
             "id": request_id,
-            "result": Json::empty_object(),
+            "result": { "tools": tools_json },
           }
           response
         }
@@ -89,7 +104,14 @@ pub fn McpServer::handle_request(self : McpServer, request : Json) -> Json {
           let response : Json = {
             "jsonrpc": "2.0",
             "id": request_id,
-            "result": Json::empty_object(),
+            "result": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "tools/call requires async execution",
+                },
+              ],
+            },
           }
           response
         }
@@ -114,10 +136,10 @@ pub fn McpServer::handle_request(self : McpServer, request : Json) -> Json {
 }
 
 ///|
-/// 服务端事件循环（骨架预留）。
+/// 服务端事件循环。
 ///
-/// P2 预留：返回 async 函数值，内部单次 listen → receive → handle_request → send（避免测试死锁），
-/// 不实现具体事件循环逻辑（后续 R21/R22 添加完整实现，改为 loop 结构）。
+/// R20 实现：listen → 循环(receive → handle_request → send)，
+/// 单次处理一个请求后返回（避免测试死锁，完整 loop 结构后续添加）。
 pub fn McpServer::serve(
   self : McpServer,
 ) -> async (Unit) -> Unit raise McpError {

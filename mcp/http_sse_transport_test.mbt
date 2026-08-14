@@ -18,7 +18,7 @@ async test "mcp/http_sse_transport_construct" (t : @test.Test) {
 #cfg(all(target="native", not(platform="windows")))
 async test "mcp/http_sse_transport_trait_object_storable" (t : @test.Test) {
   @mock.run(t, _ => {
-    let transport = HttpSseTransport::new()
+    let transport = HttpSseTransport::new(port=0)
     let server_transport : &McpServerTransport = transport
     let listen_fn = McpServerTransport::listen(server_transport)
     listen_fn(())
@@ -41,7 +41,7 @@ async test "mcp/http_sse_transport_trait_object_storable" (t : @test.Test) {
 #cfg(all(target="native", not(platform="windows")))
 async test "mcp/http_sse_transport_listen_returns_async_fn" (t : @test.Test) {
   @mock.run(t, _ => {
-    let transport = HttpSseTransport::new()
+    let transport = HttpSseTransport::new(port=0)
     let listen_fn = McpServerTransport::listen(transport)
     listen_fn(())
     let listen_fn2 = McpServerTransport::listen(transport)
