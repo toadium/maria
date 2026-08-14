@@ -21,7 +21,7 @@ pub fn SimpleTeam::new(router~ : &AgentRouter) -> SimpleTeam {
 pub impl AgentTeam for SimpleTeam with fn members(self : SimpleTeam) -> Array[
   @agentid.AgentId,
 ] {
-  self.members_
+  self.members_.copy()
 }
 
 ///|

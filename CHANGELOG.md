@@ -2,6 +2,38 @@
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-08-14
+
+### P2 扩展点实现
+
+- **R17 LocalRouter** (`agent/local_router.mbt`): `AgentRouter` 具体实现，持有 `AgentId → Agent` 路由表，`route` 查找目标 Agent 调用 `queue_message`
+- **R18 SimpleTeam** (`agent/simple_team.mbt`): `AgentTeam` 具体实现，持有成员列表 + `&AgentRouter`，`broadcast` 遍历成员通过 `router.route` 投递消息
+- **R19 LruIndex** (`internal/conversation/lru_index.mbt`): `ReMeIndex` 具体实现，LRU 淘汰策略 + 容量上限，`add`/`lookup`/`invalidate`/`rebuild`
+- **R20 McpServer handle_request** (`mcp/server.mbt`): JSON-RPC 2.0 请求处理（`initialize`/`tools/list`/`tools/call`），从 `ComponentRegistry` 获取工具列表
+- **R21 HttpSseTransport** (`mcp/http_sse_transport.mbt`): `McpServerTransport` 具体实现，`@httpx.Server` 创建/关闭 + SSE 流写入（`EventStreamWriter`）+ POST 请求处理 + `start_serving` 启动 HTTP 服务
+- **R22 RegistryWatcher** (`mcp/registry_watcher.mbt`): `ToolCacheWatcher` 具体实现，`update_tools` 自动 diff 移除失效工具
+- **R23 IdleReaper** (`service/idle_reaper.mbt`): 周期性空闲会话回收，基于 `@clock.Clock` 扫描 `list_sessions` → 过滤空闲 → `close_session`
+
+### McpServer::serve 完整循环
+
+- 从单次请求处理改为完整 loop 结构（`listen → loop(receive → handle_request → send)`）
+- 当 `receive` 返回无 `method` 的空对象时退出循环（EOF 信号）
+- 支持连续处理多个请求，直到 transport 返回空对象
+
+### 质量改进
+
+- R19 LruIndex: `capacity=0` 边界条件修复（拒绝所有添加）
+- R18 SimpleTeam: `members()` 返回数组副本（防止外部修改内部状态）
+- R21 HttpSseTransport: `listen` 幂等（先关闭旧 server 再创建新 server，防止资源泄漏）
+- R21 HttpSseTransport: `close` 清空 `sse_writer` + 关闭 server（完整资源清理）
+
+### 集成测试
+
+- R17 LocalRouter: 5 个测试（构造 / contains / route unknown / unregister / trait object）
+- R18 SimpleTeam: 8 个测试（构造 / add dedup / remove / broadcast / members copy / trait object）
+- R19 LruIndex: 10 个测试（add / lookup / overwrite / capacity eviction / capacity=0 / invalidate / rebuild / trait object）
+- R22 RegistryWatcher: 6 个测试（construct / update_tools / on_change / trait object）
+
 ### 文档优化
 
 - 修复 README.md 中 Agent-as-a-Service 描述重复文本 bug

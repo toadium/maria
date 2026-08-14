@@ -1,4 +1,5 @@
 import {
+  "moonbitlang/async",
   "moonbitlang/maria/component",
   "moonbitlang/maria/internal/spawn",
   "moonbitlang/maria/internal/httpx",

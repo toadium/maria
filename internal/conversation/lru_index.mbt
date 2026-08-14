@@ -22,6 +22,9 @@ pub fn LruIndex::new(capacity? : Int = 100) -> LruIndex {
 ///|
 /// 向索引添加条目。若容量已满，淘汰最旧条目。
 pub fn LruIndex::add(self : LruIndex, query : String, id : @uuid.Uuid) -> Unit {
+  if self.capacity <= 0 {
+    return
+  }
   if self.index.contains(query) {
     self.index[query] = id
     return

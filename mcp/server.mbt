@@ -138,18 +138,30 @@ pub fn McpServer::handle_request(self : McpServer, request : Json) -> Json {
 ///|
 /// 服务端事件循环。
 ///
-/// R20 实现：listen → 循环(receive → handle_request → send)，
-/// 单次处理一个请求后返回（避免测试死锁，完整 loop 结构后续添加）。
+/// R20+ 实现：listen → 循环(receive → handle_request → send)，
+/// 当 receive 返回无 method 的空对象时退出循环（EOF 信号）。
+/// 支持连续处理多个请求，直到 transport 返回空对象（无 pending 请求）。
 pub fn McpServer::serve(
   self : McpServer,
 ) -> async (Unit) -> Unit raise McpError {
   _ => {
     let listen_fn = McpServerTransport::listen(self.transport)
     listen_fn(())
-    let receive_fn = McpServerTransport::receive(self.transport)
-    let request = receive_fn(())
-    let response = self.handle_request(request)
-    let send_fn = McpServerTransport::send(self.transport, response)
-    send_fn(())
+    for ;; {
+      let receive_fn = McpServerTransport::receive(self.transport)
+      let request = receive_fn(())
+      match request {
+        Json::Object(obj) =>
+          match obj.get("method") {
+            Some(_) => {
+              let response = self.handle_request(request)
+              let send_fn = McpServerTransport::send(self.transport, response)
+              send_fn(())
+            }
+            None => break
+          }
+        _ => break
+      }
+    }
   }
 }
